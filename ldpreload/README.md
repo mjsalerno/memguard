@@ -15,14 +15,16 @@ It will then run the program as so: `LD_PRELOAD=./libhook.so ./sample`
 
 You should see some output similar to the block below:
 
-> paul@paul-UX32VD:~/Documents/school/fall2013/cse409/project$ ./build.sh 
-> Calling from main...
-> inside shared object..
-> malloc(12) = 0x18b1010 
-> displaying memory leaks.. 
-> returning from shared object.. 
-> returning to main.. 
-> freeing memory..
+```
+paul@paul-UX32VD:~/Documents/school/fall2013/cse409/project$ ./build.sh 
+Calling from main...
+inside shared object..
+malloc(12) = 0x18b1010 
+displaying memory leaks.. 
+returning from shared object.. 
+returning to main.. 
+freeing memory..
+```
 
 ## Sources and References
 1. [Let’s Hook a Library Function](http://www.linuxforu.com/2011/08/lets-hook-a-library-function/)
