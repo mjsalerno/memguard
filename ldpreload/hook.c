@@ -8,9 +8,12 @@
  * Stores the address of malloc into the function pointer.
  */
 static void mallocInit(void) {
+	printf("=== Attempting to hook `malloc`\n");
     original_malloc = dlsym(RTLD_NEXT, "malloc");
     if (original_malloc == NULL) {
         fprintf(stderr, "Error in `dlsym`: %s\n", dlerror());
+    } else {
+    	printf("=== `malloc` was successfully hooked.\n");
     }
 }
 
@@ -18,9 +21,12 @@ static void mallocInit(void) {
  * Stores the address of free into the function pointer.
  */
 static void freeInit(void) {
+	printf("=== Attempting to hook `free`\n");
 	original_free = dlsym(RTLD_NEXT, "free");
 	if(original_free == NULL) {
 		fprintf(stderr, "Error in `dlsym`: %s\n", dlerror());
+	} else {
+		printf("=== `free` was successfully hooked.\n");
 	}
 }
 
@@ -49,6 +55,6 @@ void free(void *ptr) {
 	if(original_free == NULL) {
 		freeInit();
 	}
-	original_free(ptr);
-	printf("free(%p)\n", ptr);
+	printf("Free memory -------------\n");
+	// original_free(ptr);
 }

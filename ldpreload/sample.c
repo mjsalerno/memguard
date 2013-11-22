@@ -3,9 +3,8 @@
 #include <stdlib.h>
 
 int main() {
-	int *p;
 	printf("Calling from main...\n");
-	p = malloc(12); // just allocate 10 bytes
+	int *p = malloc(12); // just allocate 10 bytes
 	if(!p) {
 		printf("Got allocation error...\n");
 		exit(1);
