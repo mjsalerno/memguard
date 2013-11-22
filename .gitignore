@@ -19,3 +19,7 @@
 *.out
 *.app
 *.hex
+
+# Custom Binaries
+libhook.so
+sample
