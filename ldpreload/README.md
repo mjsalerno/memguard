@@ -18,10 +18,10 @@ You should see some output similar to the block below:
 > paul@paul-UX32VD:~/Documents/school/fall2013/cse409/project$ ./build.sh 
 > Calling from main...
 > inside shared object..
-> malloc(12) = 0x18b1010
-> displaying memory leaks..
-> returning from shared object..
-> returning to main..
+> malloc(12) = 0x18b1010 
+> displaying memory leaks.. 
+> returning from shared object.. 
+> returning to main.. 
 > freeing memory..
 
 ## Sources and References
