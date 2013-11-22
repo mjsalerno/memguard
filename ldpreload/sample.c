@@ -3,14 +3,11 @@
 #include <stdlib.h>
 
 int main() {
-	printf("Calling from main...\n");
-	int *p = malloc(12); // just allocate 10 bytes
+	int *p = malloc(4); // just allocate 4 bytes (1 int)
 	if(!p) {
-		printf("Got allocation error...\n");
 		exit(1);
 	}
-	printf("returning to main..\n");
+	printf("Before Free\n");
 	free(p);
-	printf("freeing memory..\n");
 	return EXIT_SUCCESS;
 }
