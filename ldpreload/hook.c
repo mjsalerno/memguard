@@ -63,8 +63,15 @@ void free(void *ptr) {
 }
 
 /**
- * Hook the init function.
+ * Hook the _init function.
  */
 void _init(void) {
   printf("=== Hooking init ===\n");
+}
+
+/**
+ * Hook the _end function.
+ */
+void _end(void) {
+	printf("=== Hooking end ===\n");
 }
