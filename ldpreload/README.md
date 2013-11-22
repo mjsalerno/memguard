@@ -31,5 +31,7 @@ You should see some output similar to the block below:
 4. [LD PRELOAD notes](http://www.noah.org/wiki/LD_PRELOAD_notes)
 5. [dlsym(3)](http://linux.die.net/man/3/dlsym)
 6. [What is the LD_PRELOAD trick?](http://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick)
+7. [3.2.2.10 Memory Allocation Hooks](http://www.gnu.org/savannah-checkouts/gnu/libc/manual/html_node/Hooks-for-Malloc.html)
+8. [Overriding 'malloc' using the LD_PRELOAD mechanism](http://stackoverflow.com/questions/6083337/overriding-malloc-using-the-ld-preload-mechanism)
 
 
