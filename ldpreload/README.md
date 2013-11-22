@@ -26,6 +26,11 @@ returning to main..
 freeing memory..
 ```
 
+## Viewing information about a binary
+1. `objdump -T libhook.so` or `objdump -T sample`
+2. `nm libhook.so` or `nm sample`
+3. `ldd libhook.so` or `ldd sample`
+
 ## Sources and References
 1. [Let’s Hook a Library Function](http://www.linuxforu.com/2011/08/lets-hook-a-library-function/)
 2. [Tutorial: Function Interposition in Linux](http://www.jayconrod.com/cgi/view_post.py?23)

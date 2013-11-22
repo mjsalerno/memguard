@@ -1,7 +1,7 @@
 #define _GNU_SOURCE 
+#include <dlfcn.h> /* dlsym() */
 #include <stdio.h>
 #include <stdint.h>
-#include <dlfcn.h> /* dlsym() */
 #include "hook.h"
 
 /**
@@ -60,4 +60,11 @@ void free(void *ptr) {
 	} else {
 		printf("Attempting to free NULL!\n");
 	}
+}
+
+/**
+ * Hook the init function.
+ */
+void _init(void) {
+  printf("=== Hooking init ===\n");
 }
