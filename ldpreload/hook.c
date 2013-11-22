@@ -3,8 +3,6 @@
 #include <stdint.h>
 #include <dlfcn.h> /* dlsym() */
 
-void lcheck();
-
 void *malloc(size_t size) {
 	static void *(*my_malloc)(size_t) = NULL;
 	printf("inside shared object..\n");
@@ -16,8 +14,4 @@ void *malloc(size_t size) {
 	lcheck();
 	printf("returning from shared object..\n");
 	return p;
-}
-
-void lcheck() {
-	printf("displaying memory leaks..\n");
 }
