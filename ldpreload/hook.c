@@ -50,5 +50,5 @@ void free(void *ptr) {
 		freeInit();
 	}
 	original_free(ptr);
-	printf("free(%p)", ptr);
+	printf("free(%p)\n", ptr);
 }
