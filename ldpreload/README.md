@@ -4,7 +4,7 @@ Description: This directory contains some sample code for hooking a function is 
 ### Pre-reqs
 1. Linux OS
 2. gcc is installed
-⋅⋅ using ubuntu you can install gcc using sudo apt-get install gcc or on fedora sudo yum install gcc
+  using ubuntu you can install gcc using sudo apt-get install gcc or on fedora sudo yum install gcc
 ### Instructions
 Once all the prereqs are aquired just run 
 ```bash
