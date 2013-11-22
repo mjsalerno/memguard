@@ -93,5 +93,3 @@ paul@paul-UX32VD:~/Git/cse409/ldpreload$ ldd libhook.so
 6. [What is the LD_PRELOAD trick?](http://stackoverflow.com/questions/426230/what-is-the-ld-preload-trick)
 7. [3.2.2.10 Memory Allocation Hooks](http://www.gnu.org/savannah-checkouts/gnu/libc/manual/html_node/Hooks-for-Malloc.html)
 8. [Overriding 'malloc' using the LD_PRELOAD mechanism](http://stackoverflow.com/questions/6083337/overriding-malloc-using-the-ld-preload-mechanism)
-
-

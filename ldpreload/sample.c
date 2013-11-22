@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <malloc.h>
 #include <stdlib.h>
 
 int main() {
@@ -7,7 +6,6 @@ int main() {
 	if(!p) {
 		exit(1);
 	}
-	printf("Before Free\n");
 	free(p);
 	return EXIT_SUCCESS;
 }
