@@ -27,7 +27,7 @@ freeing memory..
 ```
 
 ## Viewing information about a binary
-1. `objdump -T libhook.so` or `objdump -T sample`
+* `objdump -T libhook.so` or `objdump -T sample`
 ```
 paul@paul-UX32VD:~/Git/cse409/ldpreload$ objdump -T libhook.so 
 
@@ -52,7 +52,7 @@ DYNAMIC SYMBOL TABLE:
 
 ```
 
-2. `nm libhook.so` or `nm sample`
+* `nm libhook.so` or `nm sample`
 ```
 paul@paul-UX32VD:~/Git/cse409/ldpreload$ nm libhook.so 
 0000000000200a88 B __bss_start
@@ -75,7 +75,7 @@ paul@paul-UX32VD:~/Git/cse409/ldpreload$ nm libhook.so
                  U stderr
 ```
 
-3. `ldd libhook.so` or `ldd sample`
+* `ldd libhook.so` or `ldd sample`
 ```
 paul@paul-UX32VD:~/Git/cse409/ldpreload$ ldd libhook.so 
 	linux-vdso.so.1 =>  (0x00007fff8f1e4000)
