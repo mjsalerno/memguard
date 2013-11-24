@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <execinfo.h>
 #include "hook.h"
 
 /**
@@ -39,7 +40,23 @@ void free(void *ptr) {
 		libc_free(ptr);
 	}
 	/* Hooking free via LD_PRELOAD hooks NULL frees from unknown source*/
-	/* Currently nothing is done to handle this */ 
+	/* Currently nothing is done to handle this */
+
+	/* temp backtrace calls */
+	void *buffer[100];
+    char **strings;
+    int j;
+	int nptrs = backtrace(buffer, 100);
+    // printf("backtrace() returned %d addresses\n", nptrs);
+    strings = backtrace_symbols(buffer, nptrs);
+    if (strings == NULL) {
+        perror("backtrace_symbols");
+        exit(EXIT_FAILURE);
+    }
+
+   for (j = 0; j < nptrs; j++)
+        printf("%s\n", strings[j]);
+   libc_free(strings);
 }
 
 /**
