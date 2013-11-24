@@ -4,11 +4,12 @@ Description: This directory contains some sample code for hooking a function is 
 ### Pre-reqs
 1. Linux OS
 2. gcc is installed
+3. make installed
   using ubuntu you can install gcc using sudo apt-get install gcc or on fedora sudo yum install gcc
 ### Instructions
 Once all the prereqs are aquired just run 
 ```bash
-./build.sh
+make run
 ```
 This script will build `hook.so` and the executable `sample`
 It will then run the program as so: `LD_PRELOAD=./libhook.so ./sample`
@@ -16,14 +17,17 @@ It will then run the program as so: `LD_PRELOAD=./libhook.so ./sample`
 You should see some output similar to the block below:
 
 ```
-paul@paul-UX32VD:~/Documents/school/fall2013/cse409/project$ ./build.sh 
-Calling from main...
-inside shared object..
-malloc(12) = 0x18b1010 
-displaying memory leaks.. 
-returning from shared object.. 
-returning to main.. 
-freeing memory..
+paul@paul-UX32VD:~/Git/cse409/ldpreload$ make run
+gcc -Wall -Werror -g  -fPIC -DPIC -rdynamic -c hook.c
+ld -shared -o libhook.so hook.o -ldl
+gcc -Wall -Werror -g  sample.c -o sample
+LD_PRELOAD=./libhook.so ./sample
+=== Attempting to hook `malloc`
+=== `malloc` was successfully hooked.
+=== Attempting to hook `free`
+=== `free` was successfully hooked.
+malloc(4) = 0x177c010
+Freeing memory at address 0x177c010
 ```
 
 ## Viewing information about a binary
