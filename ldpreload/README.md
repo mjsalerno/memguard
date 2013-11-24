@@ -11,7 +11,7 @@ Once all the prereqs are aquired just run
 ```bash
 make run
 ```
-This script will build `hook.so` and the executable `sample`
+This script will build `libhook.so` and the executable `sample`
 It will then run the program as so: `LD_PRELOAD=./libhook.so ./sample`
 
 You should see some output similar to the block below:
