@@ -11,4 +11,6 @@ static void freeInit(void);
 /* Custom wrapper function for malloc */
 void* malloc(size_t size);
 void free(void* ptr);
+/* mprotect */
+static void handler(int sig, siginfo_t *si, void *unused);
 #endif

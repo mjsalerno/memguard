@@ -3,7 +3,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
+/* mprotect(2) */
+#include <malloc.h>
+#include <unistd.h>
+#include <signal.h>
+#include <errno.h>
+#include <sys/mman.h>
+/* function prototypes */
 #include "hook.h"
+
+#define handle_error(msg) \
+    do { perror(msg); exit(EXIT_FAILURE); } while (0)
+
+struct sigaction sa;
+int pagesize;
 
 /**
  * Hook the _init function.
@@ -15,7 +28,25 @@ void _init(void) {
 	if(libc_free == NULL) {
 		freeInit();
 	}
+	// Set up mprotect
+	sa.sa_flags = SA_SIGINFO;
+    sigemptyset(&sa.sa_mask);
+    sa.sa_sigaction = handler;
+    if (sigaction(SIGSEGV, &sa, NULL) == -1)
+        handle_error("sigaction");
+    pagesize = sysconf(_SC_PAGE_SIZE);
+    if (pagesize == -1)
+        handle_error("sysconf");
 }
+
+/**
+ * Function for handling violating page reads
+ */
+static void handler(int sig, siginfo_t *si, void *unused) {
+    printf("Got SIGSEGV at address: 0x%lx\n", (long) si->si_addr);
+    exit(EXIT_FAILURE);
+}
+
 
 /**
  * Custom wrapper for malloc. 
@@ -24,8 +55,34 @@ void _init(void) {
  * @return Returns memory allocated by malloc if possible, else NULL.
  */
 void *malloc(size_t size) {
-	void *ptr = libc_malloc(size);
-	printf("malloc(%zu) = %p\n", size, ptr);
+	/* Calculate the number of pages to store */
+	int pages = (size / pagesize);
+	/* calculate the total pages to allocate */
+	int total_pages = pages + 2;
+	/* Total Bytes to allocate */
+	int total_bytes = total_pages * pagesize;
+	/* allocate the desired memory */
+	void *ptr = memalign(pagesize, total_bytes);
+	if (ptr == NULL)
+		handle_error("memalign"); 
+	/* Print out original malloc area */
+	printf("--- Desired malloc(%zu bytes; %d pages) = %p\n", size, pages, ptr);
+	/* Print out actual malloc information */ 
+	printf("--- Actual malloc(%d bytes; %d pages) = %p\n", total_bytes, total_pages, ptr);
+	/* Calculate the offset */
+	int offset = pagesize - size;
+	/* Add protection to the start memory */
+	if(mprotect(ptr, offset, PROT_READ) == -1)
+        handle_error("start-padding");
+    /* Add padding to the end of memory */
+    if(mprotect(ptr + ((total_pages - 1) * pagesize), (int) size, PROT_READ) == -1)
+    	handle_error("end-padding");
+    printf("--- End padding address: %p\n", ptr + ((total_pages - 1) * pagesize));
+    /* Adjust the pointer */
+    ptr = ptr + offset;
+    /* increment the pointer to the correct location */ 
+	printf("--- User starting address == %p\n", ptr);
+	printf("--- User ending address == %p\n", ptr + size);
 	return ptr;
 }
 
@@ -37,7 +94,9 @@ void *malloc(size_t size) {
  */
 void free(void *ptr) {
 	if(ptr != NULL) {
-		printf("Freeing memory at address %p\n", ptr);
+		/* TODO: This value is hard coded fix it! */
+		ptr -= (pagesize - 8);
+		printf("--- Freeing memory at address %p\n", ptr);
 		libc_free(ptr);
 	}
 	/* Hooking free via LD_PRELOAD hooks NULL frees from unknown source*/
