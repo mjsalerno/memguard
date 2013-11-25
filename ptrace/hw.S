@@ -1,4 +1,3 @@
-                                # gcc -o hw hw.s
        .global _start
 
         .text
