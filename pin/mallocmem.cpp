@@ -136,7 +136,7 @@ VOID ImageLoad( IMG img, VOID *v )
 
     // See if malloc() is present in the image.  If so, replace it.
     //
-    RTN rtn = RTN_FindByName( img, "main" );
+    RTN rtn = RTN_FindByName( img, "malloc" );
     
     if (RTN_Valid(rtn)) {
         cout << "yep" << endl;
