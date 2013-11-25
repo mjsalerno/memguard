@@ -1,5 +1,6 @@
 #ifndef HOOK_H
 #define HOOK_H
+#define PADDING 256
 /* Location to store the original malloc function pointer */
 static void* (*libc_malloc)(size_t size) = NULL;
 /* Location to store the original free function pointer */

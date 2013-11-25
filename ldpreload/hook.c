@@ -44,7 +44,10 @@ void _init(void) {
  */
 static void handler(int sig, siginfo_t *si, void *unused) {
     printf("Got SIGSEGV at address: 0x%lx\n", (long) si->si_addr);
-    exit(EXIT_FAILURE);
+    // exit(EXIT_FAILURE);
+    /*if(mprotect(si->si_addr, pagesize, PROT_READ | PROT_WRITE) == -1)
+        printf("An error occurred while trying to mark the page R+W\n");*/
+    printf("R/W Allowed\n");
 }
 
 
@@ -57,10 +60,11 @@ static void handler(int sig, siginfo_t *si, void *unused) {
 void *malloc(size_t size) {
 	/* Calculate the number of pages to store */
 	int pages = (size / pagesize);
+	pages = pages > 0 ? pages : 1;
 	/* calculate the total pages to allocate */
-	int total_pages = pages + 2;
+	// int total_pages = pages + 2;
 	/* Total Bytes to allocate */
-	int total_bytes = total_pages * pagesize;
+	int total_bytes = pages * pagesize;
 	/* allocate the desired memory */
 	void *ptr = memalign(pagesize, total_bytes);
 	if (ptr == NULL)
@@ -68,18 +72,12 @@ void *malloc(size_t size) {
 	/* Print out original malloc area */
 	printf("--- Desired malloc(%zu bytes; %d pages) = %p\n", size, pages, ptr);
 	/* Print out actual malloc information */ 
-	printf("--- Actual malloc(%d bytes; %d pages) = %p\n", total_bytes, total_pages, ptr);
-	/* Calculate the offset */
-	int offset = pagesize - size;
+	printf("--- Actual malloc(%d bytes; %d pages) = %p\n", total_bytes, pages, ptr);
 	/* Add protection to the start memory */
-	if(mprotect(ptr, offset, PROT_READ) == -1)
-        handle_error("start-padding");
-    /* Add padding to the end of memory */
-    if(mprotect(ptr + ((total_pages - 1) * pagesize), (int) size, PROT_READ) == -1)
-    	handle_error("end-padding");
-    printf("--- End padding address: %p\n", ptr + ((total_pages - 1) * pagesize));
+	if(mprotect(ptr, pagesize * pages, PROT_NONE) == -1)
+        handle_error("PROT_NONE");
     /* Adjust the pointer */
-    ptr = ptr + offset;
+    ptr = ptr + PADDING;
     /* increment the pointer to the correct location */ 
 	printf("--- User starting address == %p\n", ptr);
 	printf("--- User ending address == %p\n", ptr + size);
@@ -95,7 +93,7 @@ void *malloc(size_t size) {
 void free(void *ptr) {
 	if(ptr != NULL) {
 		/* TODO: This value is hard coded fix it! */
-		ptr -= (pagesize - 8);
+		ptr -= (PADDING - 8);
 		printf("--- Freeing memory at address %p\n", ptr);
 		libc_free(ptr);
 	}

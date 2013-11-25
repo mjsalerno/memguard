@@ -7,8 +7,8 @@ int main() {
 		exit(EXIT_FAILURE);
 	}
 	printf("The address %p was returned\n", p);
-	p[1] = 6;
-	// printf("%d\n", p[0]);
+	p[0] = 6;
+	printf("%d\n", p[0]);
 	if(!p) {
 		exit(1);
 	}
