@@ -31,7 +31,10 @@ END_LEGAL */
 #include <iostream>
 #include <fstream>
 #include "pin.H"
+#include <stack>          // std::stack
+#include <cstdlib>		  // std::exit
 
+std::stack<ADDRINT> addrStack;
 ofstream OutFile;
 
 // The running count of instructions is kept here
@@ -46,16 +49,29 @@ VOID docount()
 
 VOID saveCall(ADDRINT nextip)
 {
+	addrStack.push(nextip+1);
 	OutFile << "Return set: 0x" << hex << nextip << endl;
 }
 
-VOID checkRet(ADDRINT *rsp, UINT32 framesize)
+VOID checkRet(ADDRINT *rsp)
 {
 	ADDRINT retval;
 
 	ADDRINT rspval = *rsp;
 	ADDRINT *psp = (ADDRINT *)rspval;
 	retval = *psp;
+	ADDRINT originval = addrStack.top();
+	if(!addrStack.empty()){
+		addrStack.pop();
+	}
+	else{
+		cerr << "ERROR: TOO MANY RETURNS DETECTED." << endl;
+		std::exit(EXIT_FAILURE);
+	}
+	if(originval != retval){
+		cerr << "ERROR: STACK SMASHING DETECTED: expected target 0x" << hex << originval << ", actual return target 0x" << retval << endl;
+		std::exit(EXIT_FAILURE);
+	}
 	OutFile << "Return to: 0x" << hex << retval << endl;
 }
 
@@ -75,15 +91,10 @@ VOID Instruction(INS ins, VOID *v)
 	}
 	else if (INS_IsRet(ins))
 	{
-		UINT64 imm = 0;
-		if (INS_OperandCount(ins) > 0 && INS_OperandIsImmediate(ins, 0))
-			imm = INS_OperandImmediate(ins, 0);
-
 		INS_InsertCall(ins, IPOINT_BEFORE,
 			AFUNPTR(checkRet),
 			IARG_CALL_ORDER, CALL_ORDER_FIRST,
 			IARG_REG_REFERENCE, REG_STACK_PTR,
-			IARG_ADDRINT, (ADDRINT)imm,
 			IARG_END);
 	}
 }
@@ -123,6 +134,7 @@ int main(int argc, char * argv[])
     if (PIN_Init(argc, argv)) return Usage();
 
     OutFile.open(KnobOutputFile.Value().c_str());
+
 
     // Register Instruction to be called to instrument instructions
     INS_AddInstrumentFunction(Instruction, 0);
