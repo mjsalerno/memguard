@@ -38,75 +38,58 @@ ofstream OutFile;
 // make it static to help the compiler optimize docount
 static UINT64 ccount = 0;
 
-static bool isMain = false;
-
-
-static VOID ImageLoad(IMG img, VOID * v)
-{
-	cout << "Loading " << IMG_Name(img) << ", Image id = " << IMG_Id(img) << endl;
-	for(SEC sec = IMG_SecHead(img); SEC_Valid(sec); sec = SEC_Next(sec)){
-		//cout << "SEC: " << SEC_Name(sec) << ", SEC size = " << SEC_Size(sec) << endl;
-		for(RTN rtn = SEC_RtnHead(sec); RTN_Valid(rtn); rtn = RTN_Next(rtn)){
-			cout << "\tRTN: " << RTN_Name(rtn) << endl;
-		}
-	}
-	
-	RTN mainRtn = RTN_FindByName(img, "_init");
-    if (RTN_Valid(mainRtn)){
-    	isMain = true;
-		cout << "main is valid" << endl;
-	}else{
-		cout << "main is invalid" << endl;
-	}
-}
-
 // This function is called before every instruction is executed
 VOID docount()
 {
 	ccount++;
 }
- 
-// This function is called before every call instruction is executed
-VOID print_RETURN_IP(ADDRINT ret_ip)
+
+VOID saveCall(ADDRINT nextip)
 {
-	OutFile << "Return: 0x" << hex << ret_ip << endl;
-	/*	
-	REGVAL regval;
-	REG reg = (REG)REG_EIP;
-        PIN_GetContextRegval(ctxt, reg, &regval);
-        UINT64 val;
-        PIN_ReadRegvalQWord(&regval, &val, 0);
-        OutFile << REG_StringShort(reg) << ": 0x" << hex << val << endl;
-	*/
+	OutFile << "Return set: 0x" << hex << nextip << endl;
 }
- 
-// This function is called before every return instruction is executed
-VOID printRet(const CONTEXT * ctxt)
+
+VOID checkRet(ADDRINT *rsp, UINT32 framesize)
 {
-	REGVAL regval;
-	REG reg = (REG)REG_EIP;
-        PIN_GetContextRegval(ctxt, reg, &regval);
-        UINT64 val;
-        PIN_ReadRegvalQWord(&regval, &val, 0);
-        OutFile << REG_StringShort(reg) << ": 0x" << hex << val << endl;
+	ADDRINT retval;
+
+	ADDRINT rspval = *rsp;
+	ADDRINT *psp = (ADDRINT *)rspval;
+	retval = *psp;
+	OutFile << "Return to: 0x" << hex << retval << endl;
 }
-  
+
 // Pin calls this function every time a call instruction is encountered
 VOID Instruction(INS ins, VOID *v)
 {	
-	if(!isMain) return;
-    // Insert a call to docount before every call instruction, no arguments are passed
-	if(INS_IsCall(ins)){
-    		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)docount, IARG_END);
-		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)print_RETURN_IP, IARG_RETURN_IP, IARG_END);	
+	// Insert a call to docount before every call instruction, no arguments are passed
+	if (INS_IsCall(ins))
+	{	
+		INS_InsertCall(ins, IPOINT_BEFORE,
+			(AFUNPTR)docount,
+			IARG_END);
+		INS_InsertCall(ins, IPOINT_BEFORE,
+			AFUNPTR(saveCall),
+			IARG_ADDRINT, INS_NextAddress(ins),
+			IARG_END);
 	}
-	else if(INS_IsRet(ins)){
-		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)printRet, IARG_CONST_CONTEXT, IARG_END);
+	else if (INS_IsRet(ins))
+	{
+		UINT64 imm = 0;
+		if (INS_OperandCount(ins) > 0 && INS_OperandIsImmediate(ins, 0))
+			imm = INS_OperandImmediate(ins, 0);
+
+		INS_InsertCall(ins, IPOINT_BEFORE,
+			AFUNPTR(checkRet),
+			IARG_CALL_ORDER, CALL_ORDER_FIRST,
+			IARG_REG_REFERENCE, REG_STACK_PTR,
+			IARG_ADDRINT, (ADDRINT)imm,
+			IARG_END);
 	}
 }
 
 KNOB<string> KnobOutputFile(KNOB_MODE_WRITEONCE, "pintool",
-    "o", "maincallcount.out", "specify output file name");
+    "o", "callcount.out", "specify output file name");
 
 // This function is called when the application exits
 VOID Fini(INT32 code, VOID *v)
@@ -140,9 +123,6 @@ int main(int argc, char * argv[])
     if (PIN_Init(argc, argv)) return Usage();
 
     OutFile.open(KnobOutputFile.Value().c_str());
-	
-	// Instruction to start only at main
-	IMG_AddInstrumentFunction(ImageLoad, 0);
 
     // Register Instruction to be called to instrument instructions
     INS_AddInstrumentFunction(Instruction, 0);
