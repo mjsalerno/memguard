@@ -49,7 +49,7 @@ VOID docount()
 
 VOID saveCall(ADDRINT nextip)
 {
-	addrStack.push(nextip+1);
+	addrStack.push(nextip);
 	OutFile << "Return set: 0x" << hex << nextip << endl;
 }
 
