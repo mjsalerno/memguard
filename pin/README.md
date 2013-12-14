@@ -32,7 +32,7 @@ $ ../../../pin -t  obj-intel64/<pin-tool>.so  -- <prgm-to-test>
 ```
 example
 
- ```bash
+```bash
 $ ../../../pin -t obj-intel64/malloctrace.so -- ~/Desktop/test
 ```
 
