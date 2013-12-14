@@ -1,41 +1,76 @@
 #include "whitelist.h"
 
-WhiteList::Whitelist() {
-
+WhiteList::WhiteList() {
+	/* TODO: Nothing to do? */
 }
 
 void WhiteList::add(MemoryAlloc &alloc) {
-
+	this->list.push_back(alloc);
 }
 
 void WhiteList::add(void* address, int size) {
-
+	MemoryAlloc alloc(address, size);
+	this->list.push_back(alloc);
 }
 
-MemoryAlloc* WhiteList::get(int index) {
-	return NULL;
+MemoryAlloc WhiteList::get(unsigned int index) {
+	MemoryAlloc alloc;
+	if(index >= 0 && index <= this->list.size()) {
+		alloc = list.at(index);
+	}
+	return alloc;
 }
 
 bool WhiteList::removeMatching(void* address) {
-	return false;
+	bool success = false;
+	int index = containsAddress(address);
+	if(index >= 0) {
+		success = remove(index);
+	}
+	return success;
 }
 
 bool WhiteList::removingMatching(MemoryAlloc &alloc) {
-	return false;
+	return removeMatching(alloc.getAddress());
 }
 
-void WhiteList::remove(int index) {
-
+bool WhiteList::remove(unsigned int index) {
+	bool success = false;
+	if(index >= 0 && index <= this->list.size()) {
+		list.erase(this->list.begin() + index);
+	}
+	return success;
 }
 
 void WhiteList::clear() {
-
+	this->list.clear();
 }
 
 int WhiteList::size() {
-	return -1;
+	return this->list.size();
+}
+
+bool WhiteList::isEmpty() {
+	return this->list.empty();
 }
 
 int WhiteList::containsAddress(void* address) {
-	return -1;
+	int index = ERR_NOT_FOUND;
+	for(unsigned int i = 0; i < this->list.size(); i++) {
+		MemoryAlloc alloc = this->list.at(i);
+		void *addr = alloc.getAddress();
+		// Check to see if the address is valid
+		if(addr == address) {
+			/* We found the address, save the location
+			and exit the loop. */
+			index = i;
+			break;
+		// Perform a check to see if it the address is allocated mid-memory
+		} else if(address >= addr && address <= (void*)((char*)addr + alloc.getSize())) {
+			// The address was a mid-memory chunk
+			index = ERR_MID_CHUNK;
+			break;
+		}
+	}
+	return index;
 }

@@ -3,6 +3,13 @@
 #include <cstdlib>
 #include <vector>
 #include "memoryalloc.h"
+
+/* Define error code Constants */
+#define ERR_NOT_FOUND -1
+#define ERR_MID_CHUNK -2 
+
+using namespace std;
+
 class WhiteList {
 private:
 	vector<MemoryAlloc> list;
@@ -11,7 +18,7 @@ public:
 	 * Default Constructor.
 	 * Creates an empty WhiteList.
 	 */
-	Whitelist();
+	WhiteList();
 
 	/**
 	 * Adds the provided memory alloc to this WhiteList.
@@ -29,7 +36,7 @@ public:
 	 * Gets the MemoryAlloc at the provided index.
 	 * @return Returns the MemoryAlloc at the index if it is valid, otherwise NULL.
 	 */
-	MemoryAlloc* get(int index);
+	MemoryAlloc get(unsigned int index);
 
 	/**
 	 * Searces this WhiteList for a matching address in a MemoryAlloc
@@ -48,8 +55,9 @@ public:
 	/**
 	 * Removes the element at the specified index.
 	 * @param index Index of the item to remove from the list.
+	 * @return Returns true if the index was valid, else false.
 	 */
-	void remove(int index);
+	bool remove(unsigned int index);
 
 	/**
 	 * Removes all elements from this WhiteList.
@@ -63,12 +71,18 @@ public:
 	int size();
 
 	/**
+	 * Determines if this WhiteList is empty or not.
+	 * @return Returns true if empty, else false.
+	 */
+	bool isEmpty();
+
+	/**
 	 * Checks to see if the provided address is contained within the whitelist.
 	 * The address provided should be the start of the memory allocation.
 	 * @param address Address to search this WhiteList for.
 	 * @return Returns the index of the item in the list if it is found and correct.
-	 * Returns -1 if the item is not found, and -2 if the address is found but contained within 
-	 * a block. 
+	 * Returns ERR_NOT_FOUND if the item is not found, and ERR_MID_CHUNK if the address is found but contained within 
+	 * a block. Otherwise the index of the element is returned.
 	 */
 	int containsAddress(void* address); 
 };
