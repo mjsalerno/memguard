@@ -6,13 +6,13 @@
 #Building Pin Tools
 
 
-1. Navagate to cd source/tools/ManualExamples and make all
+- Navagate to cd source/tools/ManualExamples and make all
 
 ```bash
 $ cd source/tools/ManualExamples
 ```
 
-2. Build the tools 
+- Build the tools 
 
    -  make all of the tools
 ```bash       
@@ -61,7 +61,7 @@ $ make PIN_ROOT=pin
 $ make PIN_ROOT=pin test
 ```
 
-3. clean
+- clean
 
 ```bash
 $ make PIN_ROOT=pin clean
