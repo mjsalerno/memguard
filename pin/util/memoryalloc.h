@@ -53,7 +53,8 @@ public:
 	void setSize(unsigned int size);
 
 	/**
-	 * Prints a textual representation of this MemoryAlloc. [address ~ size]
+	 * Prints a textual representation of this MemoryAlloc. 
+	 * MemoryAlloc[address = addr : size = n bytes]
 	 */
 	void print();
 };
