@@ -1,5 +1,5 @@
 CPP = g++
-CPPFLAGS = -Wall -Werror
+CPPFLAGS = -g -Wall -Werror
 
 all: utest
 

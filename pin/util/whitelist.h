@@ -50,7 +50,7 @@ public:
 	 * @param alloc MemoryAlloc to be removed. 
 	 * @return Returns true if the element was found and removed, else false.
 	 */
-	bool removingMatching(MemoryAlloc &alloc);
+	bool removeMatching(MemoryAlloc &alloc);
 
 	/**
 	 * Removes the element at the specified index.

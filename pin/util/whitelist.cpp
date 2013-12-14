@@ -30,7 +30,7 @@ bool WhiteList::removeMatching(void* address) {
 	return success;
 }
 
-bool WhiteList::removingMatching(MemoryAlloc &alloc) {
+bool WhiteList::removeMatching(MemoryAlloc &alloc) {
 	return removeMatching(alloc.getAddress());
 }
 
@@ -38,6 +38,7 @@ bool WhiteList::remove(unsigned int index) {
 	bool success = false;
 	if(index >= 0 && index <= this->list.size()) {
 		list.erase(this->list.begin() + index);
+		success = true;
 	}
 	return success;
 }

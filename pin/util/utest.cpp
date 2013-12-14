@@ -1,7 +1,6 @@
 #include <cstdlib>
 #include <cassert>
 #include <iostream>
-#include "memoryalloc.h"
 #include "whitelist.h"
 
 using namespace std;
@@ -59,7 +58,7 @@ void whiteListTests() {
 	assert(wlist.size() == 0);
 	assert(wlist.isEmpty());
 	// Add the node back
-	MemoryAlloc ma1(s1, size);
+	MemoryAlloc ma1(s1, size1);
 	wlist.add(ma1);
 	// Check the containsAddress function
 	int index = wlist.containsAddress(ma1.getAddress());
