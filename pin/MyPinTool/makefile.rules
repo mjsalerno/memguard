@@ -45,7 +45,7 @@ SA_TOOL_ROOTS :=
 APP_ROOTS :=
 
 # This defines any additional object files that need to be compiled.
-OBJECT_ROOTS := memoryalloc whitelist
+OBJECT_ROOTS := mallocmem memoryalloc whitelist
 
 # This defines any additional dlls (shared objects), other than the pintools, that need to be compiled.
 DLL_ROOTS :=
