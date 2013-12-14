@@ -66,3 +66,25 @@ $ make PIN_ROOT=pin test
 ```bash
 $ make PIN_ROOT=pin clean
 ```
+
+# Errors
+An error may occur when you run pin:
+```
+Killed
+paul@paul-UX32VD:~/Git/cse409/pin/MyPinTool$ ./pin/pin -t obj-intel64/mallocmem.so -- test
+Killed
+E:Attach to pid 7725 failed. 
+E:  The Operating System configuration prevents Pin from using the default (parent) injection mode.
+E:  To resolve this, either execute the following (as root):
+E:  $ echo 0 > /proc/sys/kernel/yama/ptrace_scope
+E:  Or use the "-injection child" option.
+E:  For more information, regarding child injection, see Injection section in the Pin User Manual.
+E:
+```
+
+If this happens do:
+1. sudo su
+2. echo 0 > /proc/sys/kernel/yama/ptrace_scope
+3. exit
+
+Run the command again
