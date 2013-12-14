@@ -80,9 +80,9 @@ public:
 	 * Checks to see if the provided address is contained within the whitelist.
 	 * The address provided should be the start of the memory allocation.
 	 * @param address Address to search this WhiteList for.
-	 * @return Returns the index of the item in the list if it is found and correct.
-	 * Returns ERR_NOT_FOUND if the item is not found, and ERR_MID_CHUNK if the address is found but contained within 
-	 * a block. Otherwise the index of the element is returned.
+	 * @return Returns the index of the item in the list if it is found and correct, ERR_NOT_FOUND 
+	 * if the item is not found, and ERR_MID_CHUNK if the address is found but contained within 
+	 * a block.
 	 */
 	int containsAddress(void* address); 
 };
