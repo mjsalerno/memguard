@@ -69,7 +69,7 @@ $ make PIN_ROOT=pin clean
 
 # Errors
 An error may occur when you run pin:
-```
+```bash
 Killed
 paul@paul-UX32VD:~/Git/cse409/pin/MyPinTool$ ./pin/pin -t obj-intel64/mallocmem.so -- test
 Killed
@@ -83,6 +83,7 @@ E:
 ```
 
 If this happens do:
+
 1. sudo su
 2. echo 0 > /proc/sys/kernel/yama/ptrace_scope
 3. exit
