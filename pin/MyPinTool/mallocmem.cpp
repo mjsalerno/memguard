@@ -36,12 +36,14 @@ END_LEGAL */
 #include <iostream>
 #include <stdio.h>
 #include <set>
+#include "whitelist.h"
 using namespace std;
 
 typedef VOID * ( *FP_MALLOC )( size_t );
 
 bool inMain = false;
 FILE * trace;
+WhiteList wl;
 
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
@@ -55,6 +57,11 @@ VOID RecordMemRead(VOID * ip, VOID * addr)
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
     fprintf(trace,"WRITE: %p \n", addr);
+    int rtn = wl.containsAddress(addr);
+
+    if(rtn != ERR_NOT_FOUND) {
+        fprintf(trace,"##########BAD WRITE: %p \n", addr);
+    }
     //cout << hex << ip << " W " << hex << addr << endl << flush;
 }
 
@@ -113,10 +120,15 @@ VOID * NewMalloc( FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp )
          << hex << returnIp << ")"
          << endl << flush;
 
-
     // Call the relocated entry point of the original (replaced) routine.
     //
-    VOID * v = orgFuncptr( arg0 );    
+    VOID * v = orgFuncptr( arg0 + 16);
+    char *cp = (char*)v;
+
+    wl.add(cp, 8);
+    cp += (8 + arg0);
+    wl.add(cp, 8);
+    
     fprintf(trace, "NEWMALLOC: %p %d \n", v, arg0);
 
     return v;

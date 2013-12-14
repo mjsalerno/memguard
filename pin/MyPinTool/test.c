@@ -3,16 +3,14 @@
 
 int main(int argc, char const *argv[]) {
 	
-	printf("###start###\n");
-	char* cp1 = malloc(2);
-	malloc(8);
-	malloc(8);
-	malloc(8);
-	malloc(8);
-	*cp1 = 'h';
-	*(cp1 +1)= 'i';
+	
+	char* cp1 = malloc(16);
+	
+	int i = 0;
+	for (i = 0; i < 50; ++i) {
+		cp1[1] = 'q';
+	}
 
-	printf("###stop###\n");
 	free(cp1);
 
 	return 0;
