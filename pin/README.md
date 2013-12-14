@@ -1,10 +1,10 @@
-Getting Pin
-=========
+#Getting Pin
+
 
 - Download pin from [here](http://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool#GettingStarted)
 
-Building Pin Tools
-===============
+#Building Pin Tools
+
 
 1. Navagate to cd source/tools/ManualExamples and make all
 
@@ -25,8 +25,8 @@ $ make all
 $ make malloctrace.test
 ```
 
-Using Pin
-========
+#Using Pin
+
 ```bash
 $ ../../../pin -t  obj-intel64/<pin-tool>.so  -- <prgm-to-test>
 ```
@@ -35,9 +35,9 @@ example
 ```bash
 $ ../../../pin -t obj-intel64/malloctrace.so -- ~/Desktop/test
 ```
+---
+#Using MyPinTool
 
-Using MyPinTool
-===============
 
 1. Make and test the tool.
 
