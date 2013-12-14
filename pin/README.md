@@ -36,4 +36,33 @@ e.g.
 $ ../../../pin -t obj-intel64/malloctrace.so -- ~/Desktop/test
 ```
 
-   		
+Using MyPinTool
+===============
+
+1. Make and test the tool.
+
+```bash
+$ ./make.sh
+```
+
+2. The results will be in the obj-intel64 folder.
+
+Or run it manually
+
+1. make
+
+```bash
+$ make PIN_ROOT=pin
+```
+
+2. test
+
+```bash
+$ make PIN_ROOT=pin test
+```
+
+3. clean
+
+```bash
+$ make PIN_ROOT=pin clean
+```

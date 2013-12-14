@@ -1,1 +1,1 @@
-make PIN_ROOT=pin
+make PIN_ROOT=pin test
