@@ -30,7 +30,7 @@ Using Pin
 ```bash
 $ ../../../pin -t  obj-intel64/<pin-tool>.so  -- <prgm-to-test>
 ```
-e.g.
+example
 
  ```bash
 $ ../../../pin -t obj-intel64/malloctrace.so -- ~/Desktop/test
