@@ -15,7 +15,7 @@ Description: This directory contains the WhiteList class and the node class Memo
 
 If all went correctly then you should see something similar to the following:
 
-```
+```bash
 paul@paul-UX32VD:~/Git/cse409/pin/util$ ./utest 
 === MemoryAlloc getSize() test passed.
 === MemoryAlloc getAddress() test passed.
@@ -35,7 +35,7 @@ paul@paul-UX32VD:~/Git/cse409/pin/util$
 ```
 
 If something went wrong you will something something like:
-```
+```bash
 paul@paul-UX32VD:~/Git/cse409/pin/util$ make clean && make
 rm -f *.o utest
 g++ -g -Wall -Werror -c utest.cpp
