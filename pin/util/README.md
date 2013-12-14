@@ -6,7 +6,7 @@ Description: This directory contains the WhiteList class and the node class Memo
 2. make is installed.
 
 ## Using the WhiteList class
-1. #include "whitelist.h" in the source file you want to use the WhiteList class in.
+1. include "whitelist.h" in the project you want to use the WhiteList class in.
 
 ## Verifying WhiteList works
 1. Navigate to cse409/pin/util
