@@ -45,6 +45,7 @@ bool inMain = false;
 FILE * trace;
 WhiteList wl;
 int number = -1;
+int freeWasCalled = 0;
 
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
@@ -60,10 +61,11 @@ VOID RecordMemWrite(VOID * ip, VOID * addr)
     //fprintf(trace,"WRITE: %p \n", addr);
     int rtn = wl.containsAddress(addr);
 
-    if(rtn != ERR_NOT_FOUND) {
+    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
     }
+    freeWasCalled = 0;
     //cout << hex << ip << " W " << hex << addr << endl << flush;
 }
 
