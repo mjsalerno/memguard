@@ -48,8 +48,8 @@ FILE * trace;
 WhiteList wl;
 int freeWasCalled = 0;
 // Malloc 
-int mallocNumber = 0;
-int freeNumber = 0;
+int mallocNumber = -1;
+int freeNumber = -1;
 
 
 // Print a memory read record
@@ -109,7 +109,7 @@ VOID Fini(INT32 code, VOID *v) {
 // This is the replacement routine.
 VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
-    VOID* v = orgFuncptr(arg0 + 16);
+    void* v = orgFuncptr(arg0 + 16);
     char *cp = (char*)v;
     wl.add(cp, 8);
     fprintf(trace, "ADDED: %p %d \n", cp, 8);
@@ -160,7 +160,7 @@ void HookFree(IMG img) {
     if(RTN_Valid(rtn)) {
         freeNumber++;
     }
-    if(RTN_Valid(rtn) && freeNumber) {
+    if(RTN_Valid(rtn) && freeNumber > 0) {
         cout << "Replacing free in " << IMG_Name(img) << endl;
         // Return type, cstype, function name, arguments...
         PROTO proto = PROTO_Allocate(PIN_PARG(void), CALLINGSTD_DEFAULT, "free", PIN_PARG(void*), PIN_PARG_END());
@@ -184,7 +184,7 @@ void HookMalloc(IMG img) {
     if(RTN_Valid(rtnMalloc)) {
         mallocNumber++;
     }
-    if(RTN_Valid(rtnMalloc) && mallocNumber) {
+    if(RTN_Valid(rtnMalloc) && mallocNumber > 0) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;   
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
                                              "malloc", PIN_PARG(int), PIN_PARG_END());
