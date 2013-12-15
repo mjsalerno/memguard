@@ -44,6 +44,7 @@ typedef VOID * ( *FP_MALLOC )( size_t );
 bool inMain = false;
 FILE * trace;
 WhiteList wl;
+int number = -1;
 
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr)
@@ -61,7 +62,7 @@ VOID RecordMemWrite(VOID * ip, VOID * addr)
 
     if(rtn != ERR_NOT_FOUND) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD READ" << endl;
+        cout << "BAD WRITE" << endl;
     }
     //cout << hex << ip << " W " << hex << addr << endl << flush;
 }
@@ -115,11 +116,11 @@ VOID * NewMalloc( FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp )
 {
     // Normally one would do something more interesting with this data.
     //
-    cout << "NewMalloc ("
-         << hex << ADDRINT ( orgFuncptr ) << ", " 
-         << dec << arg0 << ", " 
-         << hex << returnIp << ")"
-         << endl << flush;
+    // cout << "NewMalloc ("
+    //      << hex << ADDRINT ( orgFuncptr ) << ", " 
+    //      << dec << arg0 << ", " 
+    //      << hex << returnIp << ")"
+    //      << endl << flush;
 
     // Call the relocated entry point of the original (replaced) routine.
     //
@@ -136,7 +137,7 @@ VOID * NewMalloc( FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp )
     //fprintf(trace, "NEWMALLOC: %p %d \n", v, arg0);
     cout << "NEWMALLOC" << endl;
 
-    return v;
+    return (void*)(((char*)v)+8);
 }
 
 
@@ -157,12 +158,13 @@ VOID ImageLoad( IMG img, VOID *v )
     
     if (RTN_Valid(rtn)) {
         cout << "yep" << endl;
+        number++;
     } else {
         cout << "nope" << endl;
     }
     //return;
 
-    if (RTN_Valid(rtn))
+    if (RTN_Valid(rtn) && number)
     {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;
         
