@@ -15,7 +15,7 @@ void WhiteList::add(void* address, int size) {
 
 MemoryAlloc WhiteList::get(unsigned int index) {
 	MemoryAlloc alloc;
-	if(index >= 0 && index <= this->list.size()) {
+	if(index >= 0 && index < this->list.size()) {
 		alloc = list.at(index);
 	}
 	return alloc;
@@ -36,7 +36,7 @@ bool WhiteList::removeMatching(MemoryAlloc &alloc) {
 
 bool WhiteList::remove(unsigned int index) {
 	bool success = false;
-	if(index >= 0 && index <= this->list.size()) {
+	if(index >= 0 && index < this->list.size()) {
 		list.erase(this->list.begin() + index);
 		success = true;
 	}
@@ -67,7 +67,7 @@ int WhiteList::containsAddress(void* address) {
 			index = i;
 			break;
 		// Perform a check to see if it the address is allocated mid-memory
-		} else if(address >= addr && address <= (void*)((char*)addr + alloc.getSize())) {
+		} else if(address >= addr && address <= (void*)((char*)addr + alloc.getSize() - 1)) {
 			// The address was a mid-memory chunk
 			index = ERR_MID_CHUNK;
 			break;
