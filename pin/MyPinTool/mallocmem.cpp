@@ -123,13 +123,13 @@ VOID ImageLoad(IMG img, VOID *v) {
     }
 
     // See if malloc() is present in the image.  If so, replace it.
-    RTN rtn = RTN_FindByName(img, "malloc");
+    RTN rtnMalloc = RTN_FindByName(img, "malloc");
     
-    if(RTN_Valid(rtn)) {
+    if(RTN_Valid(rtnMalloc)) {
         number++;
     }
 
-    if(RTN_Valid(rtn) && number) {
+    if(RTN_Valid(rtnMalloc) && number) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;
         
         // Define a function prototype that describes the application routine
@@ -139,7 +139,7 @@ VOID ImageLoad(IMG img, VOID *v) {
         
         // Replace the application routine with the replacement function.
         // Additional arguments have been added to the replacement routine.
-        RTN_ReplaceSignature(rtn, AFUNPTR(NewMalloc),
+        RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
                                    IARG_PROTOTYPE, proto_malloc,
                                    IARG_ORIG_FUNCPTR,
                                    IARG_FUNCARG_ENTRYPOINT_VALUE, 0,

@@ -89,3 +89,6 @@ If this happens do:
 3. exit
 
 Run the command again
+
+# Sources
+1. [Detecting uninitialized memory read access bugs using pin](http://jbremer.org/detecting-uninitialized-memory-read-access-bugs-using-pin-a-la-valgrind/)
