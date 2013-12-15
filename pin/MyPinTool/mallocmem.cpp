@@ -36,7 +36,7 @@ END_LEGAL */
 #include "whitelist.h"
 using namespace std;
 
-typedef VOID * ( *FP_MALLOC )( size_t );
+typedef VOID* (*FP_MALLOC)(size_t);
 
 bool inMain = false;
 FILE * trace;
@@ -54,7 +54,6 @@ VOID RecordMemRead(VOID * ip, VOID * addr) {
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr) {
     int rtn = wl.containsAddress(addr);
-
     if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
@@ -74,10 +73,8 @@ VOID Instruction(INS ins, VOID *v) {
     UINT32 memOperands = INS_MemoryOperandCount(ins);
 
     // Iterate over each memory operand of the instruction.
-    for (UINT32 memOp = 0; memOp < memOperands; memOp++)
-    {
-        if (INS_MemoryOperandIsRead(ins, memOp))
-        {
+    for (UINT32 memOp = 0; memOp < memOperands; memOp++) {
+        if (INS_MemoryOperandIsRead(ins, memOp)) {
             INS_InsertPredicatedCall(
                 ins, IPOINT_BEFORE, (AFUNPTR)RecordMemRead,
                 IARG_INST_PTR,
@@ -87,8 +84,7 @@ VOID Instruction(INS ins, VOID *v) {
         // Note that in some architectures a single memory operand can be 
         // both read and written (for instance incl (%eax) on IA-32)
         // In that case we instrument it once for read and once for write.
-        if (INS_MemoryOperandIsWritten(ins, memOp))
-        {
+        if (INS_MemoryOperandIsWritten(ins, memOp)) {
             INS_InsertPredicatedCall(
                 ins, IPOINT_BEFORE, (AFUNPTR)RecordMemWrite,
                 IARG_INST_PTR,
@@ -127,22 +123,19 @@ VOID ImageLoad(IMG img, VOID *v) {
     }
 
     // See if malloc() is present in the image.  If so, replace it.
-    RTN rtn = RTN_FindByName( img, "malloc" );
+    RTN rtn = RTN_FindByName(img, "malloc");
     
-    if (RTN_Valid(rtn)) {
-        cout << "yep" << endl;
+    if(RTN_Valid(rtn)) {
         number++;
-    } else {
-        cout << "nope" << endl;
     }
 
-    if (RTN_Valid(rtn) && number) {
+    if(RTN_Valid(rtn) && number) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;
         
         // Define a function prototype that describes the application routine
         // that will be replaced.
-        PROTO proto_malloc = PROTO_Allocate( PIN_PARG(void *), CALLINGSTD_DEFAULT,
-                                             "malloc", PIN_PARG(int), PIN_PARG_END() );
+        PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
+                                             "malloc", PIN_PARG(int), PIN_PARG_END());
         
         // Replace the application routine with the replacement function.
         // Additional arguments have been added to the replacement routine.
@@ -154,10 +147,8 @@ VOID ImageLoad(IMG img, VOID *v) {
                                    IARG_END);
 
         // Free the function prototype.
-        PROTO_Free( proto_malloc );
-    } else {
-        cout << "I AM PRINTING SOMETHING" << endl;
-    }
+        PROTO_Free(proto_malloc);
+    } 
 }
 
 /* ===================================================================== */
@@ -178,7 +169,6 @@ INT32 Usage() {
 /* ===================================================================== */
 
 int main(INT32 argc, CHAR *argv[]) {
-    
     // Initialize symbol processing
     PIN_InitSymbols();
     // Initialize pin
@@ -186,7 +176,6 @@ int main(INT32 argc, CHAR *argv[]) {
         return Usage();
     // Open up the trace file
     trace = fopen("zzz.out", "w");
-    
     // Register ImageLoad to be called when an image is loaded
     IMG_AddInstrumentFunction(ImageLoad, 0);
     INS_AddInstrumentFunction(Instruction, 0);
