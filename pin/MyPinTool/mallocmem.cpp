@@ -53,24 +53,53 @@ int freeNumber = -1;
 
 
 // Print a memory read record
-VOID RecordMemRead(VOID * ip, VOID * addr) {
-    int rtn = wl.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND) {
-        fprintf(trace,"##########BAD READ: %p \n", addr);
-    }
+VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
+    //fprintf(trace,"READ:%p: R %p\n", ip, addr);
+    //fprintf(trace,"READ: %p \n",addr);
+    //cout << hex << ip << " R " << hex << addr << endl << flush; 
+    
+        printf("heap: %p\n", addr);
+    
 }
 
 // Print a memory write record
-VOID RecordMemWrite(VOID * ip, VOID * addr) {
+VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
     int rtn = wl.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND) {
+    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
+        cout << "BAD WRITE" << endl;
+    }    
+    
+    printf("heap: %p\n", addr);
+    
+}
+
+VOID RecordStackMemRead(VOID * ip, VOID * addr) {
+    int rtn = wl.containsAddress(addr);
+    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
+        fprintf(trace,"##########BAD WRITE: %p \n", addr);
+        cout << "BAD READ" << endl;
     }
+    printf("heap: %p\n", addr);
+    
+}
+
+// Print a memory write record
+VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
+    int rtn = wl.containsAddress(addr);
+    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
+        fprintf(trace,"##########BAD WRITE: %p \n", addr);
+        cout << "BAD WRITE" << endl;
+    }
+    freeWasCalled = 0;
+    
+        printf("heap: %p\n", addr);
+    
 }
 
 // Is called for every instruction and instruments reads and writes
 VOID Instruction(INS ins, VOID *v) {
-    if(!inMain)
+    if(!inMain || number <= 0)
         return;
     // Instruments memory accesses using a predicated call, i.e.
     // the instrumentation is called iff the instruction will actually be executed.
@@ -81,9 +110,16 @@ VOID Instruction(INS ins, VOID *v) {
 
     // Iterate over each memory operand of the instruction.
     for (UINT32 memOp = 0; memOp < memOperands; memOp++) {
-        if (INS_MemoryOperandIsRead(ins, memOp)) {
+        //if (INS_MemoryOperandIsRead(ins, memOp)) {
+        if (INS_MemoryOperandIsRead(ins, memOp) && !INS_IsStackRead(ins)) {
             INS_InsertPredicatedCall(
-                ins, IPOINT_BEFORE, (AFUNPTR)RecordMemRead,
+                ins, IPOINT_BEFORE, (AFUNPTR)RecordHeapMemRead,
+                IARG_INST_PTR,
+                IARG_MEMORYOP_EA, memOp,
+                IARG_END);
+        } else if (INS_MemoryOperandIsRead(ins, memOp)) {
+            INS_InsertPredicatedCall(
+                ins, IPOINT_BEFORE, (AFUNPTR)RecordStackMemRead,
                 IARG_INST_PTR,
                 IARG_MEMORYOP_EA, memOp,
                 IARG_END);
@@ -91,9 +127,16 @@ VOID Instruction(INS ins, VOID *v) {
         // Note that in some architectures a single memory operand can be 
         // both read and written (for instance incl (%eax) on IA-32)
         // In that case we instrument it once for read and once for write.
-        if (INS_MemoryOperandIsWritten(ins, memOp)) {
+        //if (INS_MemoryOperandIsWritten(ins, memOp)) {
+        if (INS_MemoryOperandIsWritten(ins, memOp) && !INS_IsStackWrite(ins)) {
             INS_InsertPredicatedCall(
-                ins, IPOINT_BEFORE, (AFUNPTR)RecordMemWrite,
+                ins, IPOINT_BEFORE, (AFUNPTR)RecordHeapMemWrite,
+                IARG_INST_PTR,
+                IARG_MEMORYOP_EA, memOp,
+                IARG_END);
+        } else if (INS_MemoryOperandIsWritten(ins, memOp)) {
+            INS_InsertPredicatedCall(
+                ins, IPOINT_BEFORE, (AFUNPTR)RecordStackMemWrite,
                 IARG_INST_PTR,
                 IARG_MEMORYOP_EA, memOp,
                 IARG_END);
