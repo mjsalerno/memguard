@@ -129,9 +129,10 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
         // Remove the space
         orgFuncptr(realPtr);
     } else if(index == ERR_NOT_FOUND) {
+        // This currently gets hit since a blacklist is being used 
         fprintf(trace, "Address = %p not found\n", ptr);
     } else if(index == ERR_MID_CHUNK) {
-        fprintf(trace, "mid-chunk memory deallocation @ %p\n", ptr);
+        fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
     } else {
         fprintf(trace, "Unable to deallocate the memory @ %p\n", ptr);
     }
