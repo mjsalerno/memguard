@@ -92,3 +92,5 @@ Run the command again
 
 # Sources
 1. [Detecting uninitialized memory read access bugs using pin](http://jbremer.org/detecting-uninitialized-memory-read-access-bugs-using-pin-a-la-valgrind/)
+2. [Pintool tutorials](http://shell-storm.org/repo/Notepad/more-Pin-stuff-references.txt)
+3. [Pinheads Discussion Group](http://groups.yahoo.com/neo/groups/pinheads/info)
