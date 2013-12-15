@@ -74,3 +74,8 @@ LIB_ROOTS :=
 
 # This section contains the build rules for all binaries that have special build rules.
 # See makefile.default.rules for the default build rules.
+
+
+$(OBJDIR)mallocmem$(PINTOOL_SUFFIX): $(OBJDIR)mallocmem$(OBJ_SUFFIX) $(OBJDIR)whitelist$(OBJ_SUFFIX) $(OBJDIR)memoryalloc$(OBJ_SUFFIX)
+	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
+
