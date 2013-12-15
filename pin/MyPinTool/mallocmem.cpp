@@ -49,18 +49,19 @@ WhiteList wl;
 VOID RecordMemRead(VOID * ip, VOID * addr)
 {
     //fprintf(trace,"READ:%p: R %p\n", ip, addr);
-    fprintf(trace,"READ: %p \n",addr);
+    //fprintf(trace,"READ: %p \n",addr);
     //cout << hex << ip << " R " << hex << addr << endl << flush; 
 }
 
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr)
 {
-    fprintf(trace,"WRITE: %p \n", addr);
+    //fprintf(trace,"WRITE: %p \n", addr);
     int rtn = wl.containsAddress(addr);
 
     if(rtn != ERR_NOT_FOUND) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
+        cout << "BAD READ" << endl;
     }
     //cout << hex << ip << " W " << hex << addr << endl << flush;
 }
@@ -126,10 +127,14 @@ VOID * NewMalloc( FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp )
     char *cp = (char*)v;
 
     wl.add(cp, 8);
+    fprintf(trace, "ADDED: %p %d \n", cp, 8);
     cp += (8 + arg0);
     wl.add(cp, 8);
+    fprintf(trace, "ADDED: %p %d \n", cp, 8);
+
     
-    fprintf(trace, "NEWMALLOC: %p %d \n", v, arg0);
+    //fprintf(trace, "NEWMALLOC: %p %d \n", v, arg0);
+    cout << "NEWMALLOC" << endl;
 
     return v;
 }
@@ -155,7 +160,7 @@ VOID ImageLoad( IMG img, VOID *v )
     } else {
         cout << "nope" << endl;
     }
-    return;
+    //return;
 
     if (RTN_Valid(rtn))
     {
