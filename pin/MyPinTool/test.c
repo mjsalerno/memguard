@@ -9,7 +9,7 @@ int main(int argc, char const *argv[]) {
 		cp1[i] = 'q';
 	}
 
-	free(cp1-8);
+	free(cp1);
 
 	return 0;
 }

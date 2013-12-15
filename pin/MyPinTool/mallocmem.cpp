@@ -31,34 +31,41 @@ END_LEGAL */
 
 #include "pin.H"
 #include <iostream>
-#include <stdio.h>
+#include <cstdio>
 #include <set>
 #include "whitelist.h"
 using namespace std;
 
+// Prototypes ; TODO: Move to Seperate Header file?
+void HookFree(IMG img);
+void HookMalloc(IMG img);
+
 typedef VOID* (*FP_MALLOC)(size_t);
+typedef void (*FP_FREE)(void*);
 
 bool inMain = false;
 FILE * trace;
 WhiteList wl;
-int number = -1;
 int freeWasCalled = 0;
+// Malloc 
+int mallocNumber = 0;
+int freeNumber = 0;
+
 
 // Print a memory read record
 VOID RecordMemRead(VOID * ip, VOID * addr) {
-    //fprintf(trace,"READ:%p: R %p\n", ip, addr);
-    //fprintf(trace,"READ: %p \n",addr);
-    //cout << hex << ip << " R " << hex << addr << endl << flush; 
+    int rtn = wl.containsAddress(addr);
+    if(rtn != ERR_NOT_FOUND) {
+        fprintf(trace,"##########BAD READ: %p \n", addr);
+    }
 }
 
 // Print a memory write record
 VOID RecordMemWrite(VOID * ip, VOID * addr) {
     int rtn = wl.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
+    if(rtn != ERR_NOT_FOUND) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD WRITE" << endl;
     }
-    freeWasCalled = 0;
 }
 
 // Is called for every instruction and instruments reads and writes
@@ -100,9 +107,9 @@ VOID Fini(INT32 code, VOID *v) {
 }
 
 // This is the replacement routine.
-VOID * NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
+VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
-    VOID * v = orgFuncptr( arg0 + 16);
+    VOID* v = orgFuncptr(arg0 + 16);
     char *cp = (char*)v;
     wl.add(cp, 8);
     fprintf(trace, "ADDED: %p %d \n", cp, 8);
@@ -110,6 +117,26 @@ VOID * NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     wl.add(cp, 8);
     fprintf(trace, "ADDED: %p %d \n", cp, 8);
     return (void*)(((char*)v)+8);
+}
+
+void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
+    // TODO: -8 is the fence size; Make it a constant
+    // Set the pointer to the actual start of memory
+    void* realPtr = (char*)ptr - 8;
+    // Check the WhiteList
+    int index  = wl.containsAddress(ptr);
+    if(index > 0) {
+        
+
+        // Remove the space
+        orgFuncptr(realPtr);
+    } else if(index == ERR_NOT_FOUND) {
+        fprintf(trace, "Address = %p not found\n", ptr);
+    } else if(index == ERR_MID_CHUNK) {
+        fprintf(trace, "mid-chunk memory deallocation @ %p\n", ptr);
+    } else {
+        fprintf(trace, "Unable to deallocate the memory @ %p\n", ptr);
+    }
 }
 
 
@@ -121,34 +148,55 @@ VOID ImageLoad(IMG img, VOID *v) {
         inMain = IMG_IsMainExecutable(img);
         return;
     }
+    // Hook Functions
+    HookMalloc(img);
+    HookFree(img);
+}
 
+void HookFree(IMG img) {
+    // Might need str.c_str()
+    RTN rtn = RTN_FindByName(img, "free");
+    // TODO: Hack for skipping hooks to /lib64/ld-linux-x86-64.so.2
+    if(RTN_Valid(rtn)) {
+        freeNumber++;
+    }
+    if(RTN_Valid(rtn) && freeNumber) {
+        cout << "Replacing free in " << IMG_Name(img) << endl;
+        // Return type, cstype, function name, arguments...
+        PROTO proto = PROTO_Allocate(PIN_PARG(void), CALLINGSTD_DEFAULT, "free", PIN_PARG(void*), PIN_PARG_END());
+        // Replace free
+        RTN_ReplaceSignature(rtn, AFUNPTR(NewFree),
+            IARG_PROTOTYPE, 
+            proto,
+            IARG_ORIG_FUNCPTR,
+            IARG_FUNCARG_ENTRYPOINT_VALUE, 
+            0, 
+            IARG_RETURN_IP,
+            IARG_END);
+        // Free the function prototype
+        PROTO_Free(proto);
+    }
+}
+
+void HookMalloc(IMG img) {
     // See if malloc() is present in the image.  If so, replace it.
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
-    
     if(RTN_Valid(rtnMalloc)) {
-        number++;
+        mallocNumber++;
     }
-
-    if(RTN_Valid(rtnMalloc) && number) {
-        cout << "Replacing malloc in " << IMG_Name(img) << endl;
-        
-        // Define a function prototype that describes the application routine
-        // that will be replaced.
+    if(RTN_Valid(rtnMalloc) && mallocNumber) {
+        cout << "Replacing malloc in " << IMG_Name(img) << endl;   
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
                                              "malloc", PIN_PARG(int), PIN_PARG_END());
-        
-        // Replace the application routine with the replacement function.
-        // Additional arguments have been added to the replacement routine.
         RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
                                    IARG_PROTOTYPE, proto_malloc,
                                    IARG_ORIG_FUNCPTR,
                                    IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
                                    IARG_RETURN_IP,
                                    IARG_END);
-
         // Free the function prototype.
         PROTO_Free(proto_malloc);
-    } 
+    }
 }
 
 /* ===================================================================== */
