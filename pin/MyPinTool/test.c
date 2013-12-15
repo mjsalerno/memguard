@@ -9,6 +9,9 @@ int main(int argc, char const *argv[]) {
 		cp1[i] = 'q';
 	}
 
+
+	printf("%s\n", cp1);
+
 	free(cp1);
 
 	return 0;

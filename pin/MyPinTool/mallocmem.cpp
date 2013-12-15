@@ -126,8 +126,6 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
     // Check the WhiteList
     int index  = wl.containsAddress(ptr);
     if(index > 0) {
-        
-
         // Remove the space
         orgFuncptr(realPtr);
     } else if(index == ERR_NOT_FOUND) {
