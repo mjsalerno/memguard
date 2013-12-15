@@ -67,6 +67,12 @@ $ make PIN_ROOT=pin test
 $ make PIN_ROOT=pin clean
 ```
 
+or
+
+```bash
+$ ./make.sh clean
+```
+
 # Errors
 An error may occur when you run pin:
 ```bash
