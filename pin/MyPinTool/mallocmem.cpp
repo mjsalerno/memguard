@@ -28,9 +28,6 @@ THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 END_LEGAL */
-//  Replace an original function with a custom function defined in the tool using
-//  probes.  The replacement function has a different signature from that of the 
-//  original replaced function.
 
 #include "pin.H"
 #include <iostream>
@@ -48,17 +45,14 @@ int number = -1;
 int freeWasCalled = 0;
 
 // Print a memory read record
-VOID RecordMemRead(VOID * ip, VOID * addr)
-{
+VOID RecordMemRead(VOID * ip, VOID * addr) {
     //fprintf(trace,"READ:%p: R %p\n", ip, addr);
     //fprintf(trace,"READ: %p \n",addr);
     //cout << hex << ip << " R " << hex << addr << endl << flush; 
 }
 
 // Print a memory write record
-VOID RecordMemWrite(VOID * ip, VOID * addr)
-{
-    //fprintf(trace,"WRITE: %p \n", addr);
+VOID RecordMemWrite(VOID * ip, VOID * addr) {
     int rtn = wl.containsAddress(addr);
 
     if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
@@ -66,12 +60,10 @@ VOID RecordMemWrite(VOID * ip, VOID * addr)
         cout << "BAD WRITE" << endl;
     }
     freeWasCalled = 0;
-    //cout << hex << ip << " W " << hex << addr << endl << flush;
 }
 
 // Is called for every instruction and instruments reads and writes
-VOID Instruction(INS ins, VOID *v)
-{
+VOID Instruction(INS ins, VOID *v) {
     if(!inMain)
         return;
     // Instruments memory accesses using a predicated call, i.e.
@@ -106,39 +98,21 @@ VOID Instruction(INS ins, VOID *v)
     }
 }
 
-VOID Fini(INT32 code, VOID *v)
-{
+VOID Fini(INT32 code, VOID *v) {
     fprintf(trace, "#eof \n");
     fclose(trace);
 }
 
 // This is the replacement routine.
-//
-VOID * NewMalloc( FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp )
-{
-    // Normally one would do something more interesting with this data.
-    //
-    // cout << "NewMalloc ("
-    //      << hex << ADDRINT ( orgFuncptr ) << ", " 
-    //      << dec << arg0 << ", " 
-    //      << hex << returnIp << ")"
-    //      << endl << flush;
-
+VOID * NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
-    //
     VOID * v = orgFuncptr( arg0 + 16);
     char *cp = (char*)v;
-
     wl.add(cp, 8);
     fprintf(trace, "ADDED: %p %d \n", cp, 8);
     cp += (8 + arg0);
     wl.add(cp, 8);
     fprintf(trace, "ADDED: %p %d \n", cp, 8);
-
-    
-    //fprintf(trace, "NEWMALLOC: %p %d \n", v, arg0);
-    cout << "NEWMALLOC" << endl;
-
     return (void*)(((char*)v)+8);
 }
 
@@ -146,16 +120,13 @@ VOID * NewMalloc( FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp )
 // Pin calls this function every time a new img is loaded.
 // It is best to do probe replacement when the image is loaded,
 // because only one thread knows about the image at this time.
-//
-VOID ImageLoad( IMG img, VOID *v )
-{
+VOID ImageLoad(IMG img, VOID *v) {
     if(!inMain) {
         inMain = IMG_IsMainExecutable(img);
         return;
     }
 
     // See if malloc() is present in the image.  If so, replace it.
-    //
     RTN rtn = RTN_FindByName( img, "malloc" );
     
     if (RTN_Valid(rtn)) {
@@ -164,23 +135,17 @@ VOID ImageLoad( IMG img, VOID *v )
     } else {
         cout << "nope" << endl;
     }
-    //return;
 
-    if (RTN_Valid(rtn) && number)
-    {
+    if (RTN_Valid(rtn) && number) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;
         
         // Define a function prototype that describes the application routine
         // that will be replaced.
-        //
         PROTO proto_malloc = PROTO_Allocate( PIN_PARG(void *), CALLINGSTD_DEFAULT,
                                              "malloc", PIN_PARG(int), PIN_PARG_END() );
         
         // Replace the application routine with the replacement function.
         // Additional arguments have been added to the replacement routine.
-        //
-
-        //RTN_ReplaceSignatureProbed
         RTN_ReplaceSignature(rtn, AFUNPTR(NewMalloc),
                                    IARG_PROTOTYPE, proto_malloc,
                                    IARG_ORIG_FUNCPTR,
@@ -189,7 +154,6 @@ VOID ImageLoad( IMG img, VOID *v )
                                    IARG_END);
 
         // Free the function prototype.
-        //
         PROTO_Free( proto_malloc );
     } else {
         cout << "I AM PRINTING SOMETHING" << endl;
@@ -200,8 +164,7 @@ VOID ImageLoad( IMG img, VOID *v )
 /* Print Help Message                                                    */
 /* ===================================================================== */
 
-INT32 Usage()
-{
+INT32 Usage() {
     cerr << "This tool demonstrates how to replace an original" << endl;
     cerr << " function with a custom function defined in the tool " << endl;
     cerr << " using probes.  The replacement function has a different " << endl;
@@ -214,30 +177,20 @@ INT32 Usage()
 /* Main: Initialize and start Pin in Probe mode.                         */
 /* ===================================================================== */
 
-int main( INT32 argc, CHAR *argv[] )
-{
+int main(INT32 argc, CHAR *argv[]) {
     
     // Initialize symbol processing
-    //
     PIN_InitSymbols();
-    
     // Initialize pin
-    //
-    if (PIN_Init(argc, argv)) return Usage();
+    if (PIN_Init(argc, argv)) 
+        return Usage();
+    // Open up the trace file
     trace = fopen("zzz.out", "w");
     
     // Register ImageLoad to be called when an image is loaded
-    //
-    IMG_AddInstrumentFunction( ImageLoad, 0 );
+    IMG_AddInstrumentFunction(ImageLoad, 0);
     INS_AddInstrumentFunction(Instruction, 0);
     PIN_AddFiniFunction(Fini, 0);
-    
-    // Start the program in probe mode, never returns
-    //
-    //cout << "LKJSALKJSA" << endl;
-    //PIN_StartProgramProbed();
-    
     PIN_StartProgram();
     return 0;
 }
-
