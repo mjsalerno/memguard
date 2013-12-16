@@ -75,6 +75,10 @@ void memListTests() {
 	assert(index == ERR_NOT_FOUND);
 	index = mlist.containsAddress((void*)((char*)ma1.getAddress() + 1));
 	assert(index == ERR_MID_CHUNK);
+	index = mlist.containsAddress(s1); // Check the underflow fence check
+	assert(index == ERR_IN_FENCE);
+	index = mlist.containsAddress((char*)ma1.getAddress() + ma1.getUserSize()); // Check the overflow fence check
+	assert(index == ERR_IN_FENCE);
 	cout << "=== MemList containsAddress(void *address) test passed." << endl;
 	// Check the get function
 	index = mlist.containsAddress(ma1.getAddress());
