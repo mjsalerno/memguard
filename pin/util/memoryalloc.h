@@ -141,5 +141,13 @@ public:
 	 * MemoryAlloc[address = addr : size = n bytes]
 	 */
 	void print();
+
+	/**
+	 * Gets the string representation of this MemoryAlloc.
+	 * @param buffer Pointer to the buffer to store the string in.
+	 * @param size Size of the buffer.
+	 * @returns Returns a C string representing this MemoryAlloc.
+	 */
+	char *toString(char *buffer, int size);
 };
 #endif

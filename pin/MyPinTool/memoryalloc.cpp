@@ -83,3 +83,9 @@ void MemoryAlloc::print() {
 	printf("MemoryAlloc[address = %p : underflowFence = %p : overflowFence = %p : userSize = %u : fenceSize = %u : totalSize = %u]\n", 
 		this->address, this->underflowFence, this->overflowFence, this->userSize, this->fenceSize, this->totalSize);
 }
+
+char* MemoryAlloc::toString(char *buffer, int size) {
+	snprintf(buffer, size, "MemoryAlloc[address = %p : underflowFence = %p : overflowFence = %p : userSize = %u : fenceSize = %u : totalSize = %u]", 
+		this->address, this->underflowFence, this->overflowFence, this->userSize, this->fenceSize, this->totalSize);
+	return buffer;
+}

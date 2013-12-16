@@ -145,21 +145,29 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
     if(ptr != NULL) {
-        // TODO: -8 is the fence size; Make it a constant
-        // Set the pointer to the actual start of memory
-        void* realPtr = (char*)ptr - 8;
-        // Check the WhiteList
+        // Check the MemList
         int index  = ml.containsAddress(ptr);
-        if(index > 0) {
+        if(index >= 0) {
+            MemoryAlloc alloc = ml.get(index);
             // Remove the space
-            orgFuncptr(realPtr);
+            orgFuncptr(alloc.getUnderflowFence());
+            fprintf(trace, "Freed the memory @ address %p successfully.\n", alloc.getUnderflowFence());
+            // Remove the element from the list
+            ml.removeMatching(alloc);
         } else if(index == ERR_NOT_FOUND) {
             // This currently gets hit since a blacklist is being used 
             fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
+            // Dump all memory currently stored
+            char buffer[1024];
+            for(int i = 0; i < ml.size(); i++) {
+                fprintf(trace, "%s\n", ml.get(i).toString(buffer, 1024));
+            }
         } else if(index == ERR_MID_CHUNK) {
             fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
+        } else if(index == ERR_IN_FENCE) {
+            fprintf(trace, "Memory Fence Hi @ %p\n", ptr);
         } else {
-            fprintf(trace, "Unable to deallocate the memory @ %p\n", ptr);
+            fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
         }
     } else {
         fprintf(trace, "Attempted to free NULL\n");
