@@ -148,6 +148,6 @@ public:
 	 * @param size Size of the buffer.
 	 * @returns Returns a C string representing this MemoryAlloc.
 	 */
-	char *toString(char *buffer, int size);
+	char* toString(char *buffer, int size);
 };
 #endif
