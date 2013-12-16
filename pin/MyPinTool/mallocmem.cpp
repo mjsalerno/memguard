@@ -165,7 +165,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
         } else if(index == ERR_MID_CHUNK) {
             fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
         } else if(index == ERR_IN_FENCE) {
-            fprintf(trace, "Memory Fence Hi @ %p\n", ptr);
+            fprintf(trace, "Memory Fence Hit @ %p\n", ptr);
         } else {
             fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
         }
