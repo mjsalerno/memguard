@@ -28,10 +28,10 @@ void memoryAllocTests() {
 	assert(ma2.getUserSize() == 102);
 	assert(ma1.getUserSize() != ma2.getUserSize());
 	cout << "=== MemoryAlloc getSize() test passed." << endl;
-	assert(ma1.getAddress() == string);
-	assert(ma2.getAddress() != string);
+	assert(ma1.getAddress() == (char*)string + DEFAULT_FENCE_SIZE);
+	assert(ma2.getAddress() != (char*)string + DEFAULT_FENCE_SIZE);
 	assert(ma1.getAddress() != ma2.getAddress());
-	assert(ma2.getAddress() == s2);
+	assert(ma2.getAddress() == (char*)s2 + DEFAULT_FENCE_SIZE);
 	cout << "=== MemoryAlloc getAddress() test passed." << endl;
 	// Test The print feature
 	cout << "=== Testing the print function" << endl;
@@ -68,7 +68,7 @@ void memListTests() {
 	// Check the containsAddress function
 	int index = mlist.containsAddress(ma1.getAddress());
 	assert(index >= 0);
-	index = mlist.containsAddress(s1);
+	index = mlist.containsAddress(ma1.getAddress());
 	assert(index >= 0);
 	assert(index == 0); // Only item inserted so it must be at index 0 right?
 	index = mlist.containsAddress(NULL);
@@ -77,13 +77,13 @@ void memListTests() {
 	assert(index == ERR_MID_CHUNK);
 	cout << "=== MemList containsAddress(void *address) test passed." << endl;
 	// Check the get function
-	index = mlist.containsAddress(s1);
+	index = mlist.containsAddress(ma1.getAddress());
 	MemoryAlloc g = mlist.get(index); 
 	assert(g.getAddress() == ma1.getAddress());
 	assert(g.getUserSize() == ma1.getUserSize());
 	cout << "=== MemList get(int index) test passed." << endl;
 	// Check removeMatching(void* address)
-	bool removed = mlist.removeMatching(s1);
+	bool removed = mlist.removeMatching(ma1.getAddress());
 	assert(removed);
 	removed = mlist.removeMatching(NULL);
 	assert(!removed);
