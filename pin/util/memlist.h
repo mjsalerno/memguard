@@ -30,13 +30,13 @@ public:
 	 * Creates a new MemoryAlloc with the provided values
 	 * and adds it to this MemList.
 	 */
-	void add(void* address, int size);
+	MemoryAlloc add(void* address, int size);
 
 	/**
 	 * Creates a new MemoryAlloc with the provided values
 	 * and adds it to this MemList.
 	 */
-	void add(void* address, int size, int fenceSize);
+	MemoryAlloc add(void* address, int size, int fenceSize);
 
 	/**
 	 * Gets the MemoryAlloc at the provided index.

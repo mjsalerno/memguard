@@ -67,7 +67,6 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
     if(rtn != ERR_NOT_FOUND) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
-
     }    
     //printf("heap write: %p\n", addr);
 }

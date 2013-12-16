@@ -12,9 +12,9 @@ MemoryAlloc::MemoryAlloc() {
 }
 
 MemoryAlloc::MemoryAlloc(void *address, unsigned int userSize, unsigned int fenceSize) {
-	this->address = address;
-	this->underflowFence = (char*)address - fenceSize;
-	this->overflowFence = (char*)address + userSize;
+	this->underflowFence = address;
+	this->address = (char*)address + fenceSize;
+	this->overflowFence = (char*)this->address + userSize; 
 	// Calculate Sizes
 	this->userSize = userSize;
 	this->fenceSize = fenceSize;
@@ -22,9 +22,9 @@ MemoryAlloc::MemoryAlloc(void *address, unsigned int userSize, unsigned int fenc
 }
 
 MemoryAlloc::MemoryAlloc(void *address, unsigned int userSize) {
-	this->address = address;
-	this->underflowFence = (char*)address - DEFAULT_FENCE_SIZE;
-	this->overflowFence = (char*)address + userSize;
+	this->underflowFence = address;
+	this->address = (char*)address + DEFAULT_FENCE_SIZE;
+	this->overflowFence = (char*)this->address + userSize;
 	// Calculate Sizes
 	this->userSize = userSize;
 	this->fenceSize = DEFAULT_FENCE_SIZE;

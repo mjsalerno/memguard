@@ -8,14 +8,16 @@ void MemList::add(MemoryAlloc &alloc) {
 	this->list.push_back(alloc);
 }
 
-void MemList::add(void* address, int size) {
+MemoryAlloc MemList::add(void* address, int size) {
 	MemoryAlloc alloc(address, size);
 	this->list.push_back(alloc);
+	return alloc;
 }
 
-void MemList::add(void* address, int size, int fenceSize) {
+MemoryAlloc MemList::add(void* address, int size, int fenceSize) {
 	MemoryAlloc alloc(address, size, fenceSize);
-	this->list.push_back(alloc);	
+	this->list.push_back(alloc);
+	return alloc;	
 }
 
 MemoryAlloc MemList::get(unsigned int index) {
