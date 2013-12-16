@@ -164,6 +164,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
         } else if(index == ERR_NOT_FOUND) {
             // This currently gets hit since a blacklist is being used 
             fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
+            stats.incInvalidFreeCount();
             // Dump all memory currently stored
             char buffer[1024];
             for(int i = 0; i < ml.size(); i++) {
@@ -171,14 +172,17 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             }
         } else if(index == ERR_MID_CHUNK) {
             fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
+            stats.incMidFreeChunkCount();
         } else if(index == ERR_IN_FENCE) {
             fprintf(trace, "Memory Fence Hit @ %p\n", ptr);
             stats.incFenceHitCount();
         } else {
+            // This should Never happen...
             fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
         }
     } else {
         fprintf(trace, "Attempted to free NULL\n");
+        stats.incFreeNullCount();
     }
 }
 
