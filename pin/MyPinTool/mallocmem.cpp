@@ -34,6 +34,7 @@ END_LEGAL */
 #include <cstdio>
 #include <set>
 #include "memlist.h"
+#include "memoryalloc.h"
 using namespace std;
 
 // Prototypes ; TODO: Move to Seperate Header file?
@@ -135,14 +136,11 @@ VOID Fini(INT32 code, VOID *v) {
 // This is the replacement routine.
 VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
-    void* v = orgFuncptr(arg0 + 16);
-    char *cp = (char*)v;
-    ml.add(cp, 8);
-    fprintf(trace, "ADDED: %p %d \n", cp, 8);
-    cp += (8 + arg0);
-    ml.add(cp, 8);
-    fprintf(trace, "ADDED: %p %d \n", cp, 8);
-    return (void*)(((char*)v)+8);
+    void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
+    
+    MemoryAlloc ma = ml.add(v, arg0, DEFAULT_FENCE_SIZE);
+    fprintf(trace, "ADDED: %p %d \n", v, DEFAULT_FENCE_SIZE);
+    return ma.getAddress();
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
