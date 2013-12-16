@@ -53,40 +53,32 @@ int freeNumber = -1;
 
 // Print a memory read record
 VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
-    //fprintf(trace,"READ:%p: R %p\n", ip, addr);
-    //fprintf(trace,"READ: %p \n",addr);
-    //cout << hex << ip << " R " << hex << addr << endl << flush; 
-    // printf("heap read: %p\n", addr);
+    int rtn = wl.containsAddress(addr);
+    if(rtn != ERR_NOT_FOUND) {
+        fprintf(trace,"##########BAD WRITE: %p \n", addr);
+        cout << "BAD WRITE" << endl;
+    }
+    //printf("heap read: %p\n", addr);
 }
 
 // Print a memory write record
 VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
     int rtn = wl.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
+    if(rtn != ERR_NOT_FOUND) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
-    }     
-    // printf("heap write: %p\n", addr);
+
+    }    
+    //printf("heap write: %p\n", addr);
 }
 
-VOID RecordStackMemRead(VOID * ip, VOID * addr) {
-    int rtn = wl.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
-        fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD READ" << endl;
-    }
-    // printf("stack read: %p\n", addr);
+VOID RecordStackMemRead(VOID * ip, VOID * addr) {    
+    //printf("stack read: %p\n", addr);    
 }
 
 // Print a memory write record
 VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
-    int rtn = wl.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
-        fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD WRITE" << endl;
-    }
-    freeWasCalled = 0;
-    // printf("stack write: %p\n", addr);
+    //printf("stack write: %p\n", addr); 
 }
 
 // Is called for every instruction and instruments reads and writes
