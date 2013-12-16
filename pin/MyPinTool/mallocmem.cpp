@@ -58,7 +58,7 @@ VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
     }
-    //printf("heap: %p\n", addr);
+    //printf("heap read: %p\n", addr);
 }
 
 // Print a memory write record
@@ -69,16 +69,16 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
         cout << "BAD WRITE" << endl;
 
     }    
-    //printf("heap: %p\n", addr);
+    //printf("heap write: %p\n", addr);
 }
 
 VOID RecordStackMemRead(VOID * ip, VOID * addr) {    
-    //printf("stack: %p\n", addr);    
+    //printf("stack read: %p\n", addr);    
 }
 
 // Print a memory write record
 VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
-    //printf("stack: %p\n", addr); 
+    //printf("stack write: %p\n", addr); 
 }
 
 // Is called for every instruction and instruments reads and writes
