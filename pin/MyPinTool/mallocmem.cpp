@@ -55,9 +55,9 @@ int freeNumber = -1;
 // Print a memory read record
 VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND) {
+    if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD WRITE" << endl;
+        cout << "BAD READ" << endl;
     }
     //printf("heap read: %p\n", addr);
 }
@@ -65,7 +65,7 @@ VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
 // Print a memory write record
 VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
-    if(rtn != ERR_NOT_FOUND) {
+    if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
     }    

@@ -15,8 +15,8 @@ int main(int argc, char const *argv[]) {
     // printf("that was stack\n");
 
 	int i = 0;
-	for (i = 0; i < 17; ++i) {
-		cp1[i] = 'q';
+	for (i = 0; i < 18; ++i) {
+            cp1[i] = 'q';
 	}
 
 	free(cp1);
