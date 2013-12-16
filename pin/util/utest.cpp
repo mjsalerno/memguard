@@ -48,23 +48,23 @@ void memListTests() {
 	char *s1 = (char*) malloc(size1);
 	// Check the initial size;
 	assert(mlist.size() == 0);
-	cout << "=== WhiteList size() test passed." << endl;
+	cout << "=== MemList size() test passed." << endl;
 	// Create a new node
 	mlist.add(s1, size1);
 	// Check the size
 	assert(mlist.size() == 1);
-	cout << "=== WhiteList add(address, size) test passed." << endl;
+	cout << "=== MemList add(address, size) test passed." << endl;
 	// Remove the node
 	bool success = mlist.remove(0);
 	assert(success == true);
 	assert(mlist.size() == 0);
 	assert(mlist.isEmpty());
-	cout << "=== WhiteList remove(int index) and isEmpty() test passed." << endl;
+	cout << "=== MemList remove(int index) and isEmpty() test passed." << endl;
 	// Add the node back
 	MemoryAlloc ma1(s1, size1);
 	mlist.add(ma1);
 	assert(mlist.size() == 1);
-	cout << "=== WhiteList add(MemoryAlloc alloc) test passed." << endl;
+	cout << "=== MemList add(MemoryAlloc alloc) test passed." << endl;
 	// Check the containsAddress function
 	int index = mlist.containsAddress(ma1.getAddress());
 	assert(index >= 0);
@@ -75,33 +75,33 @@ void memListTests() {
 	assert(index == ERR_NOT_FOUND);
 	index = mlist.containsAddress((void*)((char*)ma1.getAddress() + 1));
 	assert(index == ERR_MID_CHUNK);
-	cout << "=== WhiteList containsAddress(void *address) test passed." << endl;
+	cout << "=== MemList containsAddress(void *address) test passed." << endl;
 	// Check the get function
 	index = mlist.containsAddress(s1);
 	MemoryAlloc g = mlist.get(index); 
 	assert(g.getAddress() == ma1.getAddress());
 	assert(g.getUserSize() == ma1.getUserSize());
-	cout << "=== WhiteList get(int index) test passed." << endl;
+	cout << "=== MemList get(int index) test passed." << endl;
 	// Check removeMatching(void* address)
 	bool removed = mlist.removeMatching(s1);
 	assert(removed);
 	removed = mlist.removeMatching(NULL);
 	assert(!removed);
-	cout << "=== WhiteList removeMatching(void* address) test passed." << endl;
+	cout << "=== MemList removeMatching(void* address) test passed." << endl;
 	// Check removeMatching(MemoryAlloc &alloc)
 	mlist.add(ma1);
 	removed = mlist.removeMatching(ma1);
 	assert(removed);
 	removed = mlist.removeMatching(ma1);
 	assert(!removed);
-	cout << "=== WhiteList removeMatching(MemoryAlloc &alloc) test passed." << endl;
+	cout << "=== MemList removeMatching(MemoryAlloc &alloc) test passed." << endl;
 	// Check clear()
 	assert(mlist.isEmpty());
 	mlist.add(ma1);
 	assert(!mlist.isEmpty());
 	mlist.clear();
 	assert(mlist.isEmpty());
-	cout << "=== WhiteList clear() test passed." << endl;
+	cout << "=== MemList clear() test passed." << endl;
 	// Free allocated memory
 	free(s1);
 }

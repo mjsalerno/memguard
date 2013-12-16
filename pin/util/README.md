@@ -5,10 +5,10 @@ Description: This directory contains the WhiteList class and the node class Memo
 1. g++ is installed.
 2. make is installed.
 
-## Using the WhiteList class
-1. include "whitelist.h" in the project you want to use the WhiteList class in.
+## Using the MemList class
+1. include "memlist.h" in the project you want to use the MemList class in.
 
-## Verifying WhiteList works
+## Verifying MemList works
 1. Navigate to cse409/pin/util
 2. type ``` make clean && make ```
 3. type ``` ./utest ```
