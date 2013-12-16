@@ -51,15 +51,12 @@ int freeWasCalled = 0;
 int mallocNumber = -1;
 int freeNumber = -1;
 
-
 // Print a memory read record
 VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
     //fprintf(trace,"READ:%p: R %p\n", ip, addr);
     //fprintf(trace,"READ: %p \n",addr);
     //cout << hex << ip << " R " << hex << addr << endl << flush; 
-    
-        printf("heap: %p\n", addr);
-    
+    // printf("heap read: %p\n", addr);
 }
 
 // Print a memory write record
@@ -68,10 +65,8 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
     if(rtn != ERR_NOT_FOUND && !freeWasCalled) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
-    }    
-    
-    printf("heap: %p\n", addr);
-    
+    }     
+    // printf("heap write: %p\n", addr);
 }
 
 VOID RecordStackMemRead(VOID * ip, VOID * addr) {
@@ -80,8 +75,7 @@ VOID RecordStackMemRead(VOID * ip, VOID * addr) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD READ" << endl;
     }
-    printf("heap: %p\n", addr);
-    
+    // printf("stack read: %p\n", addr);
 }
 
 // Print a memory write record
@@ -92,14 +86,12 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
         cout << "BAD WRITE" << endl;
     }
     freeWasCalled = 0;
-    
-        printf("heap: %p\n", addr);
-    
+    // printf("stack write: %p\n", addr);
 }
 
 // Is called for every instruction and instruments reads and writes
 VOID Instruction(INS ins, VOID *v) {
-    if(!inMain || number <= 0)
+    if(!inMain /*|| number <= 0*/)
         return;
     // Instruments memory accesses using a predicated call, i.e.
     // the instrumentation is called iff the instruction will actually be executed.
@@ -163,21 +155,26 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
-    // TODO: -8 is the fence size; Make it a constant
-    // Set the pointer to the actual start of memory
-    void* realPtr = (char*)ptr - 8;
-    // Check the WhiteList
-    int index  = wl.containsAddress(ptr);
-    if(index > 0) {
-        // Remove the space
-        orgFuncptr(realPtr);
-    } else if(index == ERR_NOT_FOUND) {
-        // This currently gets hit since a blacklist is being used 
-        fprintf(trace, "Address = %p not found\n", ptr);
-    } else if(index == ERR_MID_CHUNK) {
-        fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
+    printf("address free %p\n", ptr);
+    if(ptr != NULL) {
+        // TODO: -8 is the fence size; Make it a constant
+        // Set the pointer to the actual start of memory
+        void* realPtr = (char*)ptr - 8;
+        // Check the WhiteList
+        int index  = wl.containsAddress(ptr);
+        if(index > 0) {
+            // Remove the space
+            orgFuncptr(realPtr);
+        } else if(index == ERR_NOT_FOUND) {
+            // This currently gets hit since a blacklist is being used 
+            fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
+        } else if(index == ERR_MID_CHUNK) {
+            fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
+        } else {
+            fprintf(trace, "Unable to deallocate the memory @ %p\n", ptr);
+        }
     } else {
-        fprintf(trace, "Unable to deallocate the memory @ %p\n", ptr);
+        fprintf(trace, "Attempted to free NULL\n");
     }
 }
 
@@ -196,7 +193,6 @@ VOID ImageLoad(IMG img, VOID *v) {
 }
 
 void HookFree(IMG img) {
-    // Might need str.c_str()
     RTN rtn = RTN_FindByName(img, "free");
     // TODO: Hack for skipping hooks to /lib64/ld-linux-x86-64.so.2
     if(RTN_Valid(rtn)) {
@@ -229,13 +225,13 @@ void HookMalloc(IMG img) {
     if(RTN_Valid(rtnMalloc) && mallocNumber > 0) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;   
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
-                                             "malloc", PIN_PARG(int), PIN_PARG_END());
+            "malloc", PIN_PARG(int), PIN_PARG_END());
         RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
-                                   IARG_PROTOTYPE, proto_malloc,
-                                   IARG_ORIG_FUNCPTR,
-                                   IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
-                                   IARG_RETURN_IP,
-                                   IARG_END);
+            IARG_PROTOTYPE, proto_malloc,
+            IARG_ORIG_FUNCPTR,
+            IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+            IARG_RETURN_IP,
+            IARG_END);
         // Free the function prototype.
         PROTO_Free(proto_malloc);
     }
