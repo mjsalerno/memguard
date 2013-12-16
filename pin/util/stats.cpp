@@ -6,6 +6,9 @@ Stats::Stats() {
 	this->invalidReadCount = 0;
 	this->invalidWriteCount = 0;
 	this->fenceHitCount = 0;
+	this->invalidFreeCount = 0;
+	this->midFreeChunkCount = 0;
+	this->freeNullCount = 0;
 }
 
 void Stats::reset() {
@@ -13,7 +16,10 @@ void Stats::reset() {
 	this->freeCount = 0;
 	this->invalidReadCount = 0;
 	this->invalidWriteCount = 0;
-	this->fenceHitCount = 0;	
+	this->fenceHitCount = 0;
+	this->invalidFreeCount = 0;
+	this->midFreeChunkCount = 0;
+	this->freeNullCount = 0;
 }
 
 unsigned int Stats::getMallocCount() {
@@ -32,6 +38,18 @@ unsigned int Stats::getInvalidWriteCount() {
 
 unsigned int Stats::getFenceHitCount() {
 	return this->fenceHitCount;
+}
+
+unsigned int Stats::getInvalidFreeCount() {
+	return this->invalidFreeCount;
+}
+
+unsigned int Stats::getMidFreeChunkCount() {
+	return this->midFreeChunkCount;
+}
+
+unsigned int Stats::getFreeNullCount() {
+	return this->freeNullCount;
 }
 
 void Stats::setMallocCount(unsigned int count) {
@@ -54,6 +72,18 @@ void Stats::setFenceHitCount(unsigned int count) {
 	this->fenceHitCount = count;
 }
 
+void Stats::setInvalidFreeCount(unsigned int count) {
+	this->invalidFreeCount = count;
+}
+
+void Stats::setMidFreeChunkCount(unsigned int count) {
+	this->midFreeChunkCount = count;
+}
+
+void Stats::setFreeNullCount(unsigned int count) {
+	this->freeNullCount = count;
+}
+
 void Stats::incMallocCount() {
 	this->mallocCount++;
 }
@@ -74,6 +104,18 @@ void Stats::incFenceHitCount() {
 	this->fenceHitCount++;
 }
 
+void Stats::incInvalidFreeCount() {
+	this->invalidFreeCount++;
+}
+
+void Stats::incMidFreeChunkCount() {
+	this->midFreeChunkCount++;
+}
+
+void Stats::incFreeNullCount() {
+	this->freeNullCount++;
+}
+
 void Stats::displayResults(MemList memlist, FILE *fp) {
 	if(fp == NULL) {
 		fp = stdin;
@@ -84,6 +126,9 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "%-20s %d\n", "deallocations: ", this->freeCount);
 	fprintf(fp, "%-20s %d\n", "invalid reads: ", this->invalidReadCount);
 	fprintf(fp, "%-20s %d\n", "invalid writes: ", this->invalidWriteCount);
+	fprintf(fp, "%-20s %d\n", "invalid frees: ", this->invalidFreeCount);
+	fprintf(fp, "%-20s %d\n", "null free: ", this->freeNullCount);
+	fprintf(fp, "%-20s %d\n", "midchunk free: ", this->midFreeChunkCount);
 	fprintf(fp, "%-20s %d\n", "fence hit: ", this->fenceHitCount);
 	// Print out the contents of memlist if it was provided.
 	fprintf(fp, "=== MEMLIST CONTENTS ===\n");

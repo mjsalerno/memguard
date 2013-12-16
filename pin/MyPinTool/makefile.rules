@@ -76,6 +76,6 @@ LIB_ROOTS :=
 # See makefile.default.rules for the default build rules.
 
 
-$(OBJDIR)mallocmem$(PINTOOL_SUFFIX): $(OBJDIR)mallocmem$(OBJ_SUFFIX) $(OBJDIR)memlist$(OBJ_SUFFIX) $(OBJDIR)memoryalloc$(OBJ_SUFFIX)
+$(OBJDIR)mallocmem$(PINTOOL_SUFFIX): $(OBJDIR)mallocmem$(OBJ_SUFFIX) $(OBJDIR)memlist$(OBJ_SUFFIX) $(OBJDIR)memoryalloc$(OBJ_SUFFIX) $(OBJDIR)stats$(OBJ_SUFFIX)
 	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
 

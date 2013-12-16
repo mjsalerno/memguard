@@ -8,6 +8,9 @@ private:
 	unsigned int freeCount;
 	unsigned int invalidReadCount;
 	unsigned int invalidWriteCount;
+	unsigned int invalidFreeCount;
+	unsigned int midFreeChunkCount;
+	unsigned int freeNullCount;
 	unsigned int fenceHitCount;
 public:
 	Stats();
@@ -16,18 +19,28 @@ public:
 	unsigned int getInvalidReadCount();
 	unsigned int getInvalidWriteCount();
 	unsigned int getFenceHitCount();
+	unsigned int getInvalidFreeCount();
+	unsigned int getMidFreeChunkCount();
+	unsigned int getFreeNullCount();
 
 	void setMallocCount(unsigned int count);
 	void setFreeCount(unsigned int count);
 	void setInvalidReadCount(unsigned int count);
 	void setInvalidWriteCount(unsigned int count);
 	void setFenceHitCount(unsigned int count);
+	void setInvalidFreeCount(unsigned int count);
+	void setMidFreeChunkCount(unsigned int count);
+	void setFreeNullCount(unsigned int count);
+
 
 	void incMallocCount();
 	void incFreeCount();
 	void incInvalidReadCount();
 	void incInvalidWriteCount();
 	void incFenceHitCount();
+	void incInvalidFreeCount();
+	void incMidFreeChunkCount();
+	void incFreeNullCount();
 
 	void reset();
 

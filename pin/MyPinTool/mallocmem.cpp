@@ -35,6 +35,7 @@ END_LEGAL */
 #include <set>
 #include "memlist.h"
 #include "memoryalloc.h"
+#include "stats.h"
 using namespace std;
 
 // Prototypes ; TODO: Move to Seperate Header file?
@@ -47,6 +48,7 @@ typedef void (*FP_FREE)(void*);
 bool inMain = false;
 FILE * trace;
 MemList ml;
+Stats stats;
 int freeWasCalled = 0;
 // Malloc 
 int mallocNumber = -1;
@@ -58,6 +60,7 @@ VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD READ" << endl;
+        stats.incInvalidReadCount();
     }
     //printf("heap read: %p\n", addr);
 }
@@ -68,6 +71,7 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
+        stats.incInvalidWriteCount();
     }    
     //printf("heap write: %p\n", addr);
 }
@@ -130,6 +134,8 @@ VOID Instruction(INS ins, VOID *v) {
 
 VOID Fini(INT32 code, VOID *v) {
     fprintf(trace, "#eof \n");
+    // Display the stats
+    stats.displayResults(ml, trace);
     fclose(trace);
 }
 
@@ -137,7 +143,7 @@ VOID Fini(INT32 code, VOID *v) {
 VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
-    
+    stats.incMallocCount();
     MemoryAlloc ma = ml.add(v, arg0, DEFAULT_FENCE_SIZE);
     fprintf(trace, "ADDED: %p %d \n", v, DEFAULT_FENCE_SIZE);
     return ma.getAddress();
@@ -154,6 +160,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             fprintf(trace, "Freed the memory @ address %p successfully.\n", alloc.getUnderflowFence());
             // Remove the element from the list
             ml.removeMatching(alloc);
+            stats.incFreeCount();
         } else if(index == ERR_NOT_FOUND) {
             // This currently gets hit since a blacklist is being used 
             fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
@@ -166,6 +173,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
         } else if(index == ERR_IN_FENCE) {
             fprintf(trace, "Memory Fence Hit @ %p\n", ptr);
+            stats.incFenceHitCount();
         } else {
             fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
         }
