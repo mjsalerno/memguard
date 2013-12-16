@@ -1,5 +1,5 @@
 # Pin Utility classes
-Description: This directory contains the WhiteList class and the node class MemoryAlloc for tracking memory allocations.
+Description: This directory contains the MemList class, the node class MemoryAlloc for tracking memory allocations, and the Stats class.
 
 ## Pre-reqs
 1. g++ is installed.
@@ -7,6 +7,9 @@ Description: This directory contains the WhiteList class and the node class Memo
 
 ## Using the MemList class
 1. include "memlist.h" in the project you want to use the MemList class in.
+
+## Using the Stats class
+1. include "stats.h" in the project you want to use the Stats class in.
 
 ## Verifying MemList works
 1. Navigate to cse409/pin/util
