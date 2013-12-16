@@ -13,6 +13,11 @@ void MemList::add(void* address, int size) {
 	this->list.push_back(alloc);
 }
 
+void MemList::add(void* address, int size, int fenceSize) {
+	MemoryAlloc alloc(address, size, fenceSize);
+	this->list.push_back(alloc);	
+}
+
 MemoryAlloc MemList::get(unsigned int index) {
 	MemoryAlloc alloc;
 	if(index >= 0 && index < this->list.size()) {
