@@ -6,7 +6,8 @@
 
 /* Define error code Constants */
 #define ERR_NOT_FOUND -1
-#define ERR_MID_CHUNK -2 
+#define ERR_MID_CHUNK -2
+#define ERR_IN_FENCE -3 
 
 using namespace std;
 
