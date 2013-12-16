@@ -155,7 +155,6 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
-    printf("address free %p\n", ptr);
     if(ptr != NULL) {
         // TODO: -8 is the fence size; Make it a constant
         // Set the pointer to the actual start of memory
