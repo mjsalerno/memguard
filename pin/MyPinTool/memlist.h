@@ -10,25 +10,25 @@
 
 using namespace std;
 
-class WhiteList {
+class MemList {
 private:
 	vector<MemoryAlloc> list;
 public:
 	/**
 	 * Default Constructor.
-	 * Creates an empty WhiteList.
+	 * Creates an empty MemList.
 	 */
-	WhiteList();
+	MemList();
 
 	/**
-	 * Adds the provided memory alloc to this WhiteList.
-	 * @param alloc MemoryAlloc to add to this WhiteList.
+	 * Adds the provided memory alloc to this MemList.
+	 * @param alloc MemoryAlloc to add to this MemList.
 	 */
 	void add(MemoryAlloc &alloc);
 
 	/**
 	 * Creates a new MemoryAlloc with the provided values
-	 * and adds it to this WhiteList.
+	 * and adds it to this MemList.
 	 */
 	void add(void* address, int size);
 
@@ -39,14 +39,14 @@ public:
 	MemoryAlloc get(unsigned int index);
 
 	/**
-	 * Searces this WhiteList for a matching address in a MemoryAlloc
+	 * Searces this MemList for a matching address in a MemoryAlloc
 	 * element and removes it.
 	 * @return Returns true if the element was found and removed, else false.
 	 */
 	bool removeMatching(void* address);
 
 	/**
-	 * Searches this WhiteList for the provided MemoryAlloc and removes it.
+	 * Searches this MemList for the provided MemoryAlloc and removes it.
 	 * @param alloc MemoryAlloc to be removed. 
 	 * @return Returns true if the element was found and removed, else false.
 	 */
@@ -60,26 +60,26 @@ public:
 	bool remove(unsigned int index);
 
 	/**
-	 * Removes all elements from this WhiteList.
+	 * Removes all elements from this MemList.
 	 */
 	void clear();
 
 	/**
-	 * Gets the size of this WhiteList.
-	 * @return Returns the size of this WhiteList.
+	 * Gets the size of this MemList.
+	 * @return Returns the size of this MemList.
 	 */
 	int size();
 
 	/**
-	 * Determines if this WhiteList is empty or not.
+	 * Determines if this MemList is empty or not.
 	 * @return Returns true if empty, else false.
 	 */
 	bool isEmpty();
 
 	/**
-	 * Checks to see if the provided address is contained within the whitelist.
+	 * Checks to see if the provided address is contained within the MemList.
 	 * The address provided should be the start of the memory allocation.
-	 * @param address Address to search this WhiteList for.
+	 * @param address Address to search this MemList for.
 	 * @return Returns the index of the item in the list if it is found and correct, ERR_NOT_FOUND 
 	 * if the item is not found, and ERR_MID_CHUNK if the address is found but contained within 
 	 * a block.

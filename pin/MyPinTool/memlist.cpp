@@ -1,19 +1,19 @@
-#include "whitelist.h"
+#include "memlist.h"
 
-WhiteList::WhiteList() {
+MemList::MemList() {
 	/* TODO: Nothing to do? */
 }
 
-void WhiteList::add(MemoryAlloc &alloc) {
+void MemList::add(MemoryAlloc &alloc) {
 	this->list.push_back(alloc);
 }
 
-void WhiteList::add(void* address, int size) {
+void MemList::add(void* address, int size) {
 	MemoryAlloc alloc(address, size);
 	this->list.push_back(alloc);
 }
 
-MemoryAlloc WhiteList::get(unsigned int index) {
+MemoryAlloc MemList::get(unsigned int index) {
 	MemoryAlloc alloc;
 	if(index >= 0 && index < this->list.size()) {
 		alloc = list.at(index);
@@ -21,7 +21,7 @@ MemoryAlloc WhiteList::get(unsigned int index) {
 	return alloc;
 }
 
-bool WhiteList::removeMatching(void* address) {
+bool MemList::removeMatching(void* address) {
 	bool success = false;
 	int index = containsAddress(address);
 	if(index >= 0) {
@@ -30,11 +30,11 @@ bool WhiteList::removeMatching(void* address) {
 	return success;
 }
 
-bool WhiteList::removeMatching(MemoryAlloc &alloc) {
+bool MemList::removeMatching(MemoryAlloc &alloc) {
 	return removeMatching(alloc.getAddress());
 }
 
-bool WhiteList::remove(unsigned int index) {
+bool MemList::remove(unsigned int index) {
 	bool success = false;
 	if(index >= 0 && index < this->list.size()) {
 		list.erase(this->list.begin() + index);
@@ -43,19 +43,19 @@ bool WhiteList::remove(unsigned int index) {
 	return success;
 }
 
-void WhiteList::clear() {
+void MemList::clear() {
 	this->list.clear();
 }
 
-int WhiteList::size() {
+int MemList::size() {
 	return this->list.size();
 }
 
-bool WhiteList::isEmpty() {
+bool MemList::isEmpty() {
 	return this->list.empty();
 }
 
-int WhiteList::containsAddress(void* address) {
+int MemList::containsAddress(void* address) {
 	int index = ERR_NOT_FOUND;
 	for(unsigned int i = 0; i < this->list.size(); i++) {
 		MemoryAlloc alloc = this->list.at(i);
@@ -67,7 +67,7 @@ int WhiteList::containsAddress(void* address) {
 			index = i;
 			break;
 		// Perform a check to see if it the address is allocated mid-memory
-		} else if(address >= addr && address <= (void*)((char*)addr + alloc.getSize() - 1)) {
+		} else if(address >= addr && address <= (void*)((char*)addr + alloc.getUserSize() - 1)) {
 			// The address was a mid-memory chunk
 			index = ERR_MID_CHUNK;
 			break;
