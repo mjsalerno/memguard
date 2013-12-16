@@ -91,7 +91,7 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
 
 // Is called for every instruction and instruments reads and writes
 VOID Instruction(INS ins, VOID *v) {
-    if(!inMain /*|| number <= 0*/)
+    if(!inMain || (mallocNumber <= 0 && freeNumber <=0))
         return;
     // Instruments memory accesses using a predicated call, i.e.
     // the instrumentation is called iff the instruction will actually be executed.
