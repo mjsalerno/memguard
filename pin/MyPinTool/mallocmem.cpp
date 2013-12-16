@@ -33,7 +33,7 @@ END_LEGAL */
 #include <iostream>
 #include <cstdio>
 #include <set>
-#include "whitelist.h"
+#include "memlist.h"
 using namespace std;
 
 // Prototypes ; TODO: Move to Seperate Header file?
@@ -45,7 +45,7 @@ typedef void (*FP_FREE)(void*);
 
 bool inMain = false;
 FILE * trace;
-WhiteList wl;
+MemList ml;
 int freeWasCalled = 0;
 // Malloc 
 int mallocNumber = -1;
@@ -53,7 +53,7 @@ int freeNumber = -1;
 
 // Print a memory read record
 VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
-    int rtn = wl.containsAddress(addr);
+    int rtn = ml.containsAddress(addr);
     if(rtn != ERR_NOT_FOUND) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
@@ -63,7 +63,7 @@ VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
 
 // Print a memory write record
 VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
-    int rtn = wl.containsAddress(addr);
+    int rtn = ml.containsAddress(addr);
     if(rtn != ERR_NOT_FOUND) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
@@ -138,10 +138,10 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + 16);
     char *cp = (char*)v;
-    wl.add(cp, 8);
+    ml.add(cp, 8);
     fprintf(trace, "ADDED: %p %d \n", cp, 8);
     cp += (8 + arg0);
-    wl.add(cp, 8);
+    ml.add(cp, 8);
     fprintf(trace, "ADDED: %p %d \n", cp, 8);
     return (void*)(((char*)v)+8);
 }
@@ -152,7 +152,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
         // Set the pointer to the actual start of memory
         void* realPtr = (char*)ptr - 8;
         // Check the WhiteList
-        int index  = wl.containsAddress(ptr);
+        int index  = ml.containsAddress(ptr);
         if(index > 0) {
             // Remove the space
             orgFuncptr(realPtr);
