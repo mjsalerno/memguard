@@ -20,17 +20,17 @@ paul@paul-UX32VD:~/Git/cse409/pin/util$ ./utest
 === MemoryAlloc getSize() test passed.
 === MemoryAlloc getAddress() test passed.
 === Testing the print function
-MemoryAlloc[address = 0x1d31010 : size = 56 bytes]
-MemoryAlloc[address = 0x1d31050 : size = 102 bytes]
-=== WhiteList size() test passed.
-=== WhiteList add(address, size) test passed.
-=== WhiteList remove(int index) and isEmpty() test passed.
-=== WhiteList add(MemoryAlloc alloc) test passed.
-=== WhiteList containsAddress(void *address) test passed.
-=== WhiteList get(int index) test passed.
-=== WhiteList removeMatching(void* address) test passed.
-=== WhiteList removeMatching(MemoryAlloc &alloc) test passed.
-=== WhiteList clear() test passed.
+MemoryAlloc[address = 0xda7010 : underflowFence = 0xda6f10 : overflowFence = 0xda7048 : userSize = 56 : fenceSize = 256 : totalSize = 568]
+MemoryAlloc[address = 0xda7050 : underflowFence = 0xda6f50 : overflowFence = 0xda70b6 : userSize = 102 : fenceSize = 256 : totalSize = 614]
+=== MemList size() test passed.
+=== MemList add(address, size) test passed.
+=== MemList remove(int index) and isEmpty() test passed.
+=== MemList add(MemoryAlloc alloc) test passed.
+=== MemList containsAddress(void *address) test passed.
+=== MemList get(int index) test passed.
+=== MemList removeMatching(void* address) test passed.
+=== MemList removeMatching(MemoryAlloc &alloc) test passed.
+=== MemList clear() test passed.
 paul@paul-UX32VD:~/Git/cse409/pin/util$ 
 ```
 
@@ -40,19 +40,19 @@ paul@paul-UX32VD:~/Git/cse409/pin/util$ make clean && make
 rm -f *.o utest
 g++ -g -Wall -Werror -c utest.cpp
 g++ -g -Wall -Werror -c memoryalloc.cpp
-g++ -g -Wall -Werror -c whitelist.cpp	
-g++ -g -Wall -Werror -o utest utest.o memoryalloc.o whitelist.o
+g++ -g -Wall -Werror -c memlist.cpp	
+g++ -g -Wall -Werror -o utest utest.o memoryalloc.o memlist.o
 paul@paul-UX32VD:~/Git/cse409/pin/util$ ./utest 
 === MemoryAlloc getSize() test passed.
 === MemoryAlloc getAddress() test passed.
 === Testing the print function
-MemoryAlloc[address = 0x15d9010 : size = 56 bytes]
-MemoryAlloc[address = 0x15d9050 : size = 102 bytes]
-=== WhiteList size() test passed.
-=== WhiteList add(address, size) test passed.
-=== WhiteList remove(int index) and isEmpty() test passed.
-=== WhiteList add(MemoryAlloc alloc) test passed.
-utest: utest.cpp:75: void whiteListTests(): Assertion `index != -1' failed.
+MemoryAlloc[address = 0xda7010 : underflowFence = 0xda6f10 : overflowFence = 0xda7048 : userSize = 56 : fenceSize = 256 : totalSize = 568]
+MemoryAlloc[address = 0xda7050 : underflowFence = 0xda6f50 : overflowFence = 0xda70b6 : userSize = 102 : fenceSize = 256 : totalSize = 614]
+=== MemList size() test passed.
+=== MemList add(address, size) test passed.
+=== MemList remove(int index) and isEmpty() test passed.
+=== MemList add(MemoryAlloc alloc) test passed.
+utest: utest.cpp:75: void memListTests(): Assertion `index != -1' failed.
 Aborted (core dumped)
 paul@paul-UX32VD:~/Git/cse409/pin/util$ 
 ```
