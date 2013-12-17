@@ -41,9 +41,13 @@ using namespace std;
 // Prototypes ; TODO: Move to Seperate Header file?
 void HookFree(IMG img);
 void HookMalloc(IMG img);
+void HookCalloc(IMG img);
+void HookRealloc(IMG img);
 
 typedef VOID* (*FP_MALLOC)(size_t);
 typedef void (*FP_FREE)(void*);
+typedef void* (*FP_CALLOC)(size_t, size_t);
+typedef void* (*FP_REALLOC)(void*, size_t);
 
 bool inMain = false;
 FILE * trace;
@@ -227,6 +231,48 @@ void HookFree(IMG img) {
 void HookMalloc(IMG img) {
     // See if malloc() is present in the image.  If so, replace it.
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
+    if(RTN_Valid(rtnMalloc)) {
+        mallocNumber++;
+    }
+    if(RTN_Valid(rtnMalloc) && mallocNumber > 0) {
+        cout << "Replacing malloc in " << IMG_Name(img) << endl;   
+        PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
+            "malloc", PIN_PARG(int), PIN_PARG_END());
+        RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
+            IARG_PROTOTYPE, proto_malloc,
+            IARG_ORIG_FUNCPTR,
+            IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+            IARG_RETURN_IP,
+            IARG_END);
+        // Free the function prototype.
+        PROTO_Free(proto_malloc);
+    }
+}
+
+void HookCalloc(IMG img) {
+    // See if malloc() is present in the image.  If so, replace it.
+    RTN rtn = RTN_FindByName(img, "calloc");
+    if(RTN_Valid(rtn)) {
+        
+    }
+    if(RTN_Valid(rtnMalloc) && mallocNumber > 0) {
+        cout << "Replacing calloc in " << IMG_Name(img) << endl;   
+        PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
+            "calloc", PIN_PARG(int), PIN_PARG_END());
+        RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
+            IARG_PROTOTYPE, proto_malloc,
+            IARG_ORIG_FUNCPTR,
+            IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+            IARG_RETURN_IP,
+            IARG_END);
+        // Free the function prototype.
+        PROTO_Free(proto_malloc);
+    }
+}
+
+void HookRealloc(IMG img) {
+    // See if malloc() is present in the image.  If so, replace it.
+    RTN rtnMalloc = RTN_FindByName(img, "realloc");
     if(RTN_Valid(rtnMalloc)) {
         mallocNumber++;
     }
