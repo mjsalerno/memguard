@@ -211,8 +211,8 @@ VOID ImageLoad(IMG img, VOID *v) {
     // Hook Functions
     HookMalloc(img);
     HookFree(img);
-    HookCalloc(img);
-    HookRealloc(img);
+    // HookCalloc(img);
+    // HookRealloc(img);
 }
 
 void HookFree(IMG img) {
