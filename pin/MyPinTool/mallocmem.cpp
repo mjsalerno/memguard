@@ -207,19 +207,18 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
 // It is best to do probe replacement when the image is loaded,
 // because only one thread knows about the image at this time.
 VOID ImageLoad(IMG img, VOID *v) {
-	cout << "loading img: " << IMG_Name(img) << endl;
     if(IMG_IsMainExecutable(img)) {
 		RTN rtn = RTN_FindByName(img, "main");
-        RTN_Open(rtn);
-		cout << "\tloading rtn: " << RTN_Name(rtn) << endl;
-        // Call PIN_GetSourceLocation for all the instructions of the RTN.
+        RTN_Open(rtn);//Must open RTN API before examining instructions
 		INS ins = RTN_InsHead(rtn);
         INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)SetInMain, IARG_END);
         RTN_Close(rtn);
     }
-	// Hook Functions
-	HookMalloc(img);
-	HookFree(img);
+    // Hook Functions
+    HookMalloc(img);
+    HookFree(img);
+    // HookCalloc(img);
+    // HookRealloc(img);
 }
 
 void HookFree(IMG img) {
