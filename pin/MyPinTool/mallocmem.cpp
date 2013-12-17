@@ -62,7 +62,6 @@ VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD READ" << endl;
         stats.incInvalidReadCount();
     }
     //printf("heap read: %p\n", addr);
@@ -73,7 +72,6 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD WRITE" << endl;
         stats.incInvalidWriteCount();
     }    
     //printf("heap write: %p\n", addr);
@@ -99,7 +97,7 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
 // Set global inMain = true
 VOID SetInMain(void){
 	inMain = true;
-	cout << "Main execution started" << endl;
+    fprintf(trace, "Main execution started\n");
 }
 
 // Is called for every instruction and instruments reads and writes
@@ -262,7 +260,7 @@ VOID ImageLoad(IMG img, VOID *v) {
 void HookFree(IMG img) {
     RTN rtn = RTN_FindByName(img, "free");
     if(RTN_Valid(rtn)) {
-        cout << "Replacing free in " << IMG_Name(img) << endl;
+        fprintf(trace, "Replacing free in %s\n", IMG_Name(img).c_str());
         // Return type, cstype, function name, arguments...
         PROTO proto = PROTO_Allocate(PIN_PARG(void), CALLINGSTD_DEFAULT, "free", PIN_PARG(void*), PIN_PARG_END());
         // Replace free
@@ -284,7 +282,7 @@ void HookMalloc(IMG img) {
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
     
     if(RTN_Valid(rtnMalloc)) {
-        cout << "Replacing malloc in " << IMG_Name(img) << endl;   
+        fprintf(trace, "Replacing malloc in %s\n", IMG_Name(img).c_str());   
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "malloc", PIN_PARG(int), PIN_PARG_END());
         RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
@@ -302,7 +300,7 @@ void HookCalloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "calloc");
     if(RTN_Valid(rtn)) {
-        cout << "Replacing calloc in " << IMG_Name(img) << endl;   
+        fprintf(trace, "Replacing calloc in %s\n", IMG_Name(img).c_str());   
         PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "calloc", PIN_PARG(size_t), PIN_PARG(size_t), PIN_PARG_END());
         RTN_ReplaceSignature(rtn, AFUNPTR(NewCalloc),
@@ -320,7 +318,7 @@ void HookRealloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "realloc");
     if(RTN_Valid(rtn)) {
-        cout << "Replacing realloc in " << IMG_Name(img) << endl;   
+        fprintf(trace, "Replacing realloc in %s\n", IMG_Name(img).c_str());   
         PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "realloc", PIN_PARG(void*), PIN_PARG(size_t), PIN_PARG_END());
         RTN_ReplaceSignature(rtn, AFUNPTR(NewRealloc),
