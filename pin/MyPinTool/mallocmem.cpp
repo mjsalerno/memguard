@@ -145,7 +145,7 @@ VOID RecordReturnIns(ADDRINT ip, ADDRINT *rsp)
 		
 			RecordAddrSource(ip, "RETURN ADDRESS CHANGED");
 			stats.incInvalidReturnCount();
-			fprintf(trace, "ERROR: RETURN ADDRESS CHANGED: expected target %lx, actual return target %lx\n", originval, retval);
+			fprintf(trace, "ERROR: RETURN ADDRESS CHANGED: expected target %p, actual return target %p\n", (void *)originval, (void *)retval);
 			//std::exit(EXIT_FAILURE);
 		}
 	}
