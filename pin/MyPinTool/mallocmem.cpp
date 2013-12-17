@@ -76,7 +76,7 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
         stats.incInvalidWriteCount();
     }    
     //printf("heap write: %p\n", addr);
-}
+}{
 
 bool hasEnding (std::string const &fullString, std::string const &ending) {
     if (fullString.length() >= ending.length()) {
