@@ -51,7 +51,7 @@ typedef void* (*FP_CALLOC)(size_t, size_t);
 typedef void* (*FP_REALLOC)(void*, size_t);
 
 bool hasEnding (std::string const &fullString, std::string const &ending);
-void RecordAddrSource(ADDRINT address);
+void RecordAddrSource(ADDRINT address, string message);
 
 bool inMain = false;
 FILE * trace;
@@ -62,12 +62,10 @@ Stats stats;
 VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
-        fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD READ" << endl;
-		RecordAddrSource(ip);
+        fprintf(trace,"##########BAD READ: %p \n", addr);
+		RecordAddrSource(ip, "BAD READ");
         stats.incInvalidReadCount();
     }
-    //printf("heap read: %p\n", addr);
 }
 
 // Print a memory write record
@@ -75,15 +73,13 @@ VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
-        cout << "BAD WRITE" << endl;
-		RecordAddrSource(ip);
+		RecordAddrSource(ip, "BAD WRITE");
         stats.incInvalidWriteCount();
     }    
-    //printf("heap write: %p\n", addr);
 }
 
 // see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html
-void RecordAddrSource(ADDRINT address){
+void RecordAddrSource(ADDRINT address, string message){
 	INT32 column = 0;   // column number within the file.
 	INT32 line = 0;     // line number within the file.
 	string filename;    // source file name.
@@ -98,7 +94,7 @@ void RecordAddrSource(ADDRINT address){
 					cout << ":" << column;
 		}
 	}
-	cout << endl;
+	cout << ": Error: " << message << endl;
 }
 
 bool hasEnding (std::string const &fullString, std::string const &ending) {
