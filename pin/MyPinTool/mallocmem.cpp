@@ -49,6 +49,8 @@ typedef void (*FP_FREE)(void*);
 typedef void* (*FP_CALLOC)(size_t, size_t);
 typedef void* (*FP_REALLOC)(void*, size_t);
 
+bool hasEnding (std::string const &fullString, std::string const &ending);
+
 bool inMain = false;
 FILE * trace;
 MemList ml;
@@ -74,6 +76,14 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
         stats.incInvalidWriteCount();
     }    
     //printf("heap write: %p\n", addr);
+}
+
+bool hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
 }
 
 VOID RecordStackMemRead(VOID * ip, VOID * addr) {    
@@ -166,6 +176,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, UINT32 arg1, ADDRINT returnI
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
+
     if(ptr != NULL) {
         // Check the MemList
         int index  = ml.containsAddress(ptr);
@@ -207,6 +218,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
 // It is best to do probe replacement when the image is loaded,
 // because only one thread knows about the image at this time.
 VOID ImageLoad(IMG img, VOID *v) {
+
     if(IMG_IsMainExecutable(img)) {
 		RTN rtn = RTN_FindByName(img, "main");
         RTN_Open(rtn);//Must open RTN API before examining instructions
@@ -214,6 +226,15 @@ VOID ImageLoad(IMG img, VOID *v) {
         INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)SetInMain, IARG_END);
         RTN_Close(rtn);
     }
+
+    if(!hasEnding(IMG_Name(img), "libc.so.6")) {
+        return;
+    }
+
+    if(!inMain) {
+        inMain = IMG_IsMainExecutable(img);
+    }
+
     // Hook Functions
     HookMalloc(img);
     HookFree(img);
@@ -244,6 +265,7 @@ void HookFree(IMG img) {
 void HookMalloc(IMG img) {
     // See if malloc() is present in the image.  If so, replace it.
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
+    
     if(RTN_Valid(rtnMalloc)) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;   
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
@@ -263,9 +285,6 @@ void HookCalloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "calloc");
     if(RTN_Valid(rtn)) {
-        
-    }
-    if(RTN_Valid(rtn)) {
         cout << "Replacing calloc in " << IMG_Name(img) << endl;   
         PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "calloc", PIN_PARG(size_t), PIN_PARG(size_t), PIN_PARG_END());
@@ -283,9 +302,6 @@ void HookCalloc(IMG img) {
 void HookRealloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "realloc");
-    if(RTN_Valid(rtn)) {
-        
-    }
     if(RTN_Valid(rtn)) {
         cout << "Replacing realloc in " << IMG_Name(img) << endl;   
         PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
