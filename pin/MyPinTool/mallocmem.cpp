@@ -49,6 +49,8 @@ typedef void (*FP_FREE)(void*);
 typedef void* (*FP_CALLOC)(size_t, size_t);
 typedef void* (*FP_REALLOC)(void*, size_t);
 
+bool hasEnding (std::string const &fullString, std::string const &ending);
+
 bool inMain = false;
 FILE * trace;
 MemList ml;
@@ -74,6 +76,14 @@ VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
         stats.incInvalidWriteCount();
     }    
     //printf("heap write: %p\n", addr);
+}
+
+bool hasEnding (std::string const &fullString, std::string const &ending) {
+    if (fullString.length() >= ending.length()) {
+        return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
+    } else {
+        return false;
+    }
 }
 
 VOID RecordStackMemRead(VOID * ip, VOID * addr) {    
@@ -160,6 +170,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, UINT32 arg1, ADDRINT returnI
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
+
     if(ptr != NULL) {
         // Check the MemList
         int index  = ml.containsAddress(ptr);
@@ -201,9 +212,15 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
 // It is best to do probe replacement when the image is loaded,
 // because only one thread knows about the image at this time.
 VOID ImageLoad(IMG img, VOID *v) {
-    inMain = IMG_IsMainExecutable(img);
-    if(!inMain) {        
+    //inMain = true;
+
+    if(!hasEnding(IMG_Name(img), "libc.so.6")) {
         return;
+    }
+
+    if(!inMain) {
+        inMain = IMG_IsMainExecutable(img);
+        //return;
     }
     // Hook Functions
     HookMalloc(img);
@@ -214,7 +231,7 @@ VOID ImageLoad(IMG img, VOID *v) {
 
 void HookFree(IMG img) {
     RTN rtn = RTN_FindByName(img, "free");
-    // TODO: Hack for skipping hooks to /lib64/ld-linux-x86-64.so.2    
+    // TODO: Hack for skipping hooks to /lib64/ld-linux-x86-64.so.2
     if(RTN_Valid(rtn)) {
         cout << "Replacing free in " << IMG_Name(img) << endl;
         // Return type, cstype, function name, arguments...
@@ -236,6 +253,7 @@ void HookFree(IMG img) {
 void HookMalloc(IMG img) {
     // See if malloc() is present in the image.  If so, replace it.
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
+    
     if(RTN_Valid(rtnMalloc)) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;   
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
