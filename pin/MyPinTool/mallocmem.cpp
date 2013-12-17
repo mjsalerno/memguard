@@ -53,8 +53,7 @@ bool inMain = false;
 FILE * trace;
 MemList ml;
 Stats stats;
-int freeWasCalled = 0;
-// Malloc 
+// Library Counts 
 int mallocNumber = -1;
 int freeNumber = -1;
 
@@ -151,6 +150,16 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     MemoryAlloc ma = ml.add(v, arg0, DEFAULT_FENCE_SIZE);
     fprintf(trace, "ADDED: %p %d \n", v, DEFAULT_FENCE_SIZE);
     return ma.getAddress();
+}
+
+void* NewCalloc(FP_CALLOC orgFuncptr, UINT32 arg0, UINT32 arg1, ADDRINT returnIp) {
+    printf("New Calloc was called\n");
+    return orgFuncptr(arg0, arg1);
+}
+
+void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, UINT32 arg1, ADDRINT returnIp) {
+    printf("New Realloc was called\n");
+    return orgFuncptr(arg0, arg1);
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
@@ -250,44 +259,44 @@ void HookMalloc(IMG img) {
 }
 
 void HookCalloc(IMG img) {
-    // See if malloc() is present in the image.  If so, replace it.
+    // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "calloc");
     if(RTN_Valid(rtn)) {
         
     }
-    if(RTN_Valid(rtnMalloc) && mallocNumber > 0) {
+    if(RTN_Valid(rtn)) {
         cout << "Replacing calloc in " << IMG_Name(img) << endl;   
-        PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
-            "calloc", PIN_PARG(int), PIN_PARG_END());
-        RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
-            IARG_PROTOTYPE, proto_malloc,
+        PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
+            "calloc", PIN_PARG(size_t), PIN_PARG(size_t), PIN_PARG_END());
+        RTN_ReplaceSignature(rtn, AFUNPTR(NewCalloc),
+            IARG_PROTOTYPE, proto,
             IARG_ORIG_FUNCPTR,
             IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
             IARG_RETURN_IP,
             IARG_END);
         // Free the function prototype.
-        PROTO_Free(proto_malloc);
+        PROTO_Free(proto);
     }
 }
 
 void HookRealloc(IMG img) {
-    // See if malloc() is present in the image.  If so, replace it.
-    RTN rtnMalloc = RTN_FindByName(img, "realloc");
-    if(RTN_Valid(rtnMalloc)) {
-        mallocNumber++;
+    // See if calloc() is present in the image.  If so, replace it.
+    RTN rtn = RTN_FindByName(img, "realloc");
+    if(RTN_Valid(rtn)) {
+        
     }
-    if(RTN_Valid(rtnMalloc) && mallocNumber > 0) {
-        cout << "Replacing malloc in " << IMG_Name(img) << endl;   
-        PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
-            "malloc", PIN_PARG(int), PIN_PARG_END());
-        RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
-            IARG_PROTOTYPE, proto_malloc,
+    if(RTN_Valid(rtn)) {
+        cout << "Replacing realloc in " << IMG_Name(img) << endl;   
+        PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
+            "realloc", PIN_PARG(void*), PIN_PARG(size_t), PIN_PARG_END());
+        RTN_ReplaceSignature(rtn, AFUNPTR(NewRealloc),
+            IARG_PROTOTYPE, proto,
             IARG_ORIG_FUNCPTR,
             IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
             IARG_RETURN_IP,
             IARG_END);
         // Free the function prototype.
-        PROTO_Free(proto_malloc);
+        PROTO_Free(proto);
     }
 }
 

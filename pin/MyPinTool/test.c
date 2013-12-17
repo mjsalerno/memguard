@@ -18,7 +18,17 @@ int main(int argc, char const *argv[]) {
 	for (i = 0; i < 18; ++i) {
             cp1[i] = 'q';
 	}
-
+	// Use calloc
+	char* cptr = calloc(50, sizeof(char));
+	for(i = 0; i < 50; i++) {
+		cptr[i] = 'z';
+	}
+	// Use realloc
+	cptr = realloc(cptr, (55 * sizeof(char)));
+	for(; i < 55; i++) {
+		cptr[i] = 'r';
+	}
+	free(cptr); // This might be a bad call to free since calloc and realloc 
 	free(cp1);
 	free(ptr);
 	return 0;
