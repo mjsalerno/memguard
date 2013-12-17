@@ -130,6 +130,7 @@ INT32 Usage()
 
 int main(int argc, char * argv[])
 {
+	//cout << hex<< addrStack.top()<<endl;
     // Initialize pin
     if (PIN_Init(argc, argv)) return Usage();
 
