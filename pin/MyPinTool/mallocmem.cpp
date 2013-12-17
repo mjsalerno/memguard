@@ -32,6 +32,7 @@ END_LEGAL */
 #include "pin.H"
 #include <iostream>
 #include <cstdio>
+#include <cstring>
 #include <set>
 #include "memlist.h"
 #include "memoryalloc.h"
@@ -165,18 +166,32 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     return ma.getAddress();
 }
 
-void* NewCalloc(FP_CALLOC orgFuncptr, UINT32 arg0, UINT32 arg1, ADDRINT returnIp) {
-    printf("New Calloc was called\n");
-    return orgFuncptr(arg0, arg1);
+void* NewCalloc(FP_CALLOC libc_calloc, UINT32 arg0, UINT32 arg1, ADDRINT returnIp) {
+    // Calculate the size in bytes
+    size_t bytes = (arg0 * arg1);
+    size_t totalSize = bytes + (2 + DEFAULT_FENCE_SIZE);
+    // Figure out the correct amount of chunks
+    size_t nmemb = totalSize / arg1;
+    size_t nmembe = totalSize % arg1;
+    nmembe = (nmembe > 0) ? 1 : 0;
+    // Sum up the chunks
+    nmemb += nmembe;
+    // Allocate space using malloc
+    void *ptr = libc_calloc(nmemb, arg1);
+    // Create a new MemoryAlloc
+    MemoryAlloc ma = ml.add(ptr, bytes, DEFAULT_FENCE_SIZE);
+    // Add the information to the trace file
+    fprintf(trace, "ADDED: %p %d \n", ptr, DEFAULT_FENCE_SIZE);
+    stats.incMallocCount();
+    return ma.getAddress();
 }
 
 void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, UINT32 arg1, ADDRINT returnIp) {
     printf("New Realloc was called\n");
-    return orgFuncptr(arg0, arg1);
+    return arg0;
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
-
     if(ptr != NULL) {
         // Check the MemList
         int index  = ml.containsAddress(ptr);
@@ -192,11 +207,13 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             // This currently gets hit since a blacklist is being used 
             fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
             stats.incInvalidFreeCount();
+            /*
             // Dump all memory currently stored
             char buffer[1024];
             for(int i = 0; i < ml.size(); i++) {
                 fprintf(trace, "%s\n", ml.get(i).toString(buffer, 1024));
             }
+            */
         } else if(index == ERR_MID_CHUNK) {
             fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
             stats.incMidFreeChunkCount();
@@ -238,8 +255,8 @@ VOID ImageLoad(IMG img, VOID *v) {
     // Hook Functions
     HookMalloc(img);
     HookFree(img);
-    // HookCalloc(img);
-    // HookRealloc(img);
+    HookCalloc(img);
+    HookRealloc(img);
 }
 
 void HookFree(IMG img) {
