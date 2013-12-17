@@ -9,6 +9,7 @@ Stats::Stats() {
 	this->invalidFreeCount = 0;
 	this->midFreeChunkCount = 0;
 	this->freeNullCount = 0;
+	this->invalidReturnCount = 0;
 }
 
 void Stats::reset() {
@@ -20,6 +21,7 @@ void Stats::reset() {
 	this->invalidFreeCount = 0;
 	this->midFreeChunkCount = 0;
 	this->freeNullCount = 0;
+	this->invalidReturnCount = 0;
 }
 
 unsigned int Stats::getMallocCount() {
@@ -50,6 +52,10 @@ unsigned int Stats::getMidFreeChunkCount() {
 
 unsigned int Stats::getFreeNullCount() {
 	return this->freeNullCount;
+}
+
+unsigned int Stats::getInvalidReturnCount() {
+	return this->invalidReturnCount;
 }
 
 void Stats::setMallocCount(unsigned int count) {
@@ -84,6 +90,10 @@ void Stats::setFreeNullCount(unsigned int count) {
 	this->freeNullCount = count;
 }
 
+void Stats::setInvalidReturnCount(unsigned int count) {
+	this->invalidReturnCount = count;
+}
+
 void Stats::incMallocCount() {
 	this->mallocCount++;
 }
@@ -116,6 +126,10 @@ void Stats::incFreeNullCount() {
 	this->freeNullCount++;
 }
 
+void Stats::incInvalidReturnCount() {
+	this->invalidReturnCount++;
+}
+
 void Stats::displayResults(MemList memlist, FILE *fp) {
 	if(fp == NULL) {
 		fp = stdin;
@@ -130,6 +144,7 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "%-20s %d\n", "null free: ", this->freeNullCount);
 	fprintf(fp, "%-20s %d\n", "midchunk free: ", this->midFreeChunkCount);
 	fprintf(fp, "%-20s %d\n", "fence hit: ", this->fenceHitCount);
+	fprintf(fp, "%-20s %d\n", "invalid returns: ", this->invalidReturnCount);
 	// Print out the contents of memlist if it was provided.
 	fprintf(fp, "=== MEMLIST CONTENTS ===\n");
 	char buffer[2048];
