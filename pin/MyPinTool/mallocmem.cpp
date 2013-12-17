@@ -53,9 +53,6 @@ bool inMain = false;
 FILE * trace;
 MemList ml;
 Stats stats;
-// Library Counts 
-int mallocNumber = -1;
-int freeNumber = -1;
 
 // Print a memory read record
 VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
@@ -88,9 +85,15 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
     //printf("stack write: %p\n", addr); 
 }
 
+// Set global inMain = true
+VOID SetInMain(void){
+	inMain = true;
+	cout << "Main execution started" << endl;
+}
+
 // Is called for every instruction and instruments reads and writes
 VOID Instruction(INS ins, VOID *v) {
-    if(!inMain || (mallocNumber <= 0 && freeNumber <=0))
+    if(!inMain)
         return;
     // Instruments memory accesses using a predicated call, i.e.
     // the instrumentation is called iff the instruction will actually be executed.
@@ -204,22 +207,24 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
 // It is best to do probe replacement when the image is loaded,
 // because only one thread knows about the image at this time.
 VOID ImageLoad(IMG img, VOID *v) {
-    if(!inMain) {
-        inMain = IMG_IsMainExecutable(img);
-        return;
+	cout << "loading img: " << IMG_Name(img) << endl;
+    if(IMG_IsMainExecutable(img)) {
+		RTN rtn = RTN_FindByName(img, "main");
+        RTN_Open(rtn);
+		cout << "\tloading rtn: " << RTN_Name(rtn) << endl;
+        // Call PIN_GetSourceLocation for all the instructions of the RTN.
+		INS ins = RTN_InsHead(rtn);
+        INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)SetInMain, IARG_END);
+        RTN_Close(rtn);
     }
-    // Hook Functions
-    HookMalloc(img);
-    HookFree(img);
+	// Hook Functions
+	HookMalloc(img);
+	HookFree(img);
 }
 
 void HookFree(IMG img) {
     RTN rtn = RTN_FindByName(img, "free");
-    // TODO: Hack for skipping hooks to /lib64/ld-linux-x86-64.so.2
     if(RTN_Valid(rtn)) {
-        freeNumber++;
-    }
-    if(RTN_Valid(rtn) && freeNumber > 0) {
         cout << "Replacing free in " << IMG_Name(img) << endl;
         // Return type, cstype, function name, arguments...
         PROTO proto = PROTO_Allocate(PIN_PARG(void), CALLINGSTD_DEFAULT, "free", PIN_PARG(void*), PIN_PARG_END());
@@ -241,9 +246,6 @@ void HookMalloc(IMG img) {
     // See if malloc() is present in the image.  If so, replace it.
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
     if(RTN_Valid(rtnMalloc)) {
-        mallocNumber++;
-    }
-    if(RTN_Valid(rtnMalloc) && mallocNumber > 0) {
         cout << "Replacing malloc in " << IMG_Name(img) << endl;   
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "malloc", PIN_PARG(int), PIN_PARG_END());

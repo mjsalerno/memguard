@@ -33,7 +33,7 @@ public:
 	void setInvalidFreeCount(unsigned int count);
 	void setMidFreeChunkCount(unsigned int count);
 	void setFreeNullCount(unsigned int count);
-	void getInvalidReturnCount(unsigned int count);
+	void setInvalidReturnCount(unsigned int count);
 
 	void incMallocCount();
 	void incFreeCount();
