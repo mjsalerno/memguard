@@ -12,7 +12,7 @@ else
 		exit 1
 	fi
 	# compile the test program
-	gcc test.c -o test
+	gcc -g test.c -o test
 	# Check to see if the test program compiled successfully
 	if [ "$?" = "1" ] ; then
 		echo "test program failed to compile."

@@ -50,6 +50,7 @@ typedef void* (*FP_CALLOC)(size_t, size_t);
 typedef void* (*FP_REALLOC)(void*, size_t);
 
 bool hasEnding (std::string const &fullString, std::string const &ending);
+void RecordAddrSource(ADDRINT address);
 
 bool inMain = false;
 FILE * trace;
@@ -57,25 +58,46 @@ MemList ml;
 Stats stats;
 
 // Print a memory read record
-VOID RecordHeapMemRead(VOID * ip, VOID * addr) {
+VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD READ" << endl;
+		RecordAddrSource(ip);
         stats.incInvalidReadCount();
     }
     //printf("heap read: %p\n", addr);
 }
 
 // Print a memory write record
-VOID RecordHeapMemWrite(VOID * ip, VOID * addr) {
+VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
         cout << "BAD WRITE" << endl;
+		RecordAddrSource(ip);
         stats.incInvalidWriteCount();
     }    
     //printf("heap write: %p\n", addr);
+}
+
+// see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html
+void RecordAddrSource(ADDRINT address){
+	INT32 column = 0;   // column number within the file.
+	INT32 line = 0;     // line number within the file.
+	string filename;    // source file name.
+	PIN_LockClient();
+	PIN_GetSourceLocation(address, &column, &line, &filename);
+	PIN_UnlockClient();
+	if (filename.length() != 0) {
+		cout << filename;
+		if (line != 0){
+			cout << ":" << line;
+				if(column != 0)
+					cout << ":" << column;
+		}
+	}
+	cout << endl;
 }
 
 bool hasEnding (std::string const &fullString, std::string const &ending) {
@@ -95,7 +117,39 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
     //printf("stack write: %p\n", addr); 
 }
 
-// Set global inMain = true
+
+VOID RecordCallIns(ADDRINT nextip)
+{
+/*
+	addrStack.push(nextip);
+	OutFile << "Return set: 0x" << hex << nextip << endl;
+*/
+}
+
+VOID RecordReturnIns(ADDRINT *rsp)
+{
+/*
+	ADDRINT retval;
+
+	ADDRINT rspval = *rsp;
+	ADDRINT *psp = (ADDRINT *)rspval;
+	retval = *psp;
+	ADDRINT originval = addrStack.top();
+	if(!addrStack.empty()){
+		addrStack.pop();
+	}
+	else{
+		cerr << "ERROR: TOO MANY RETURNS DETECTED." << endl;
+		std::exit(EXIT_FAILURE);
+	}
+	if(originval != retval){
+		cerr << "ERROR: STACK SMASHING DETECTED: expected target 0x" << hex << originval << ", actual return target 0x" << retval << endl;
+		std::exit(EXIT_FAILURE);
+	}
+	OutFile << "Return to: 0x" << hex << retval << endl;
+*/
+}
+
 VOID SetInMain(void){
 	inMain = true;
 	cout << "Main execution started" << endl;
@@ -146,6 +200,19 @@ VOID Instruction(INS ins, VOID *v) {
                 IARG_END);
         }
     }
+	// RETURN ADDRESS DEFENDER
+	if (INS_IsCall(ins)) {
+		INS_InsertCall(ins, IPOINT_BEFORE,
+			AFUNPTR(RecordCallIns),
+			IARG_ADDRINT, INS_NextAddress(ins),
+			IARG_END);
+	} else if (INS_IsRet(ins)) {
+		INS_InsertCall(ins, IPOINT_BEFORE,
+			AFUNPTR(RecordReturnIns),
+			IARG_CALL_ORDER, CALL_ORDER_FIRST,
+			IARG_REG_REFERENCE, REG_STACK_PTR,
+			IARG_END);
+	}
 }
 
 VOID Fini(INT32 code, VOID *v) {
@@ -238,8 +305,8 @@ VOID ImageLoad(IMG img, VOID *v) {
     // Hook Functions
     HookMalloc(img);
     HookFree(img);
-    // HookCalloc(img);
-    // HookRealloc(img);
+  	HookCalloc(img);
+    HookRealloc(img);
 }
 
 void HookFree(IMG img) {
