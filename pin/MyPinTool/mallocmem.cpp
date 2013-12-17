@@ -37,6 +37,7 @@ END_LEGAL */
 #include "memlist.h"
 #include "memoryalloc.h"
 #include "stats.h"
+#include <stack>
 using namespace std;
 
 // Prototypes ; TODO: Move to Seperate Header file?
@@ -58,11 +59,17 @@ FILE * trace;
 MemList ml;
 Stats stats;
 
+std::stack<ADDRINT> addrStack;
+static UINT64 ccount = 0;
+VOID docount()
+{
+	ccount++;
+}
 // Print a memory read record
 VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
-        fprintf(trace,"##########BAD WRITE: %p \n", addr);
+        fprintf(trace,"##########BAD READ: %p \n", addr);
         cout << "BAD READ" << endl;
 		RecordAddrSource(ip);
         stats.incInvalidReadCount();
@@ -121,34 +128,31 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
 
 VOID RecordCallIns(ADDRINT nextip)
 {
-/*
 	addrStack.push(nextip);
-	OutFile << "Return set: 0x" << hex << nextip << endl;
-*/
 }
 
-VOID RecordReturnIns(ADDRINT *rsp)
+VOID RecordReturnIns(ADDRINT ip, ADDRINT *rsp)
 {
-/*
 	ADDRINT retval;
-
 	ADDRINT rspval = *rsp;
 	ADDRINT *psp = (ADDRINT *)rspval;
 	retval = *psp;
 	ADDRINT originval = addrStack.top();
-	if(!addrStack.empty()){
+	if(addrStack.empty()){
+		RecordAddrSource(ip);
+		stats.incInvalidReturnCount();
+		//std::exit(EXIT_FAILURE);
+	}
+	else {
 		addrStack.pop();
 	}
-	else{
-		cerr << "ERROR: TOO MANY RETURNS DETECTED." << endl;
-		std::exit(EXIT_FAILURE);
-	}
 	if(originval != retval){
-		cerr << "ERROR: STACK SMASHING DETECTED: expected target 0x" << hex << originval << ", actual return target 0x" << retval << endl;
-		std::exit(EXIT_FAILURE);
+		//cerr << "ERROR: STACK SMASHING DETECTED: expected target 0x" << hex << originval << ", actual return target 0x" << retval << endl;
+		RecordAddrSource(ip);
+		stats.incInvalidReturnCount();
+		//std::exit(EXIT_FAILURE);
 	}
-	OutFile << "Return to: 0x" << hex << retval << endl;
-*/
+	//OutFile << "Return to: 0x" << hex << retval << endl;
 }
 
 VOID SetInMain(void){
@@ -204,6 +208,9 @@ VOID Instruction(INS ins, VOID *v) {
 	// RETURN ADDRESS DEFENDER
 	if (INS_IsCall(ins)) {
 		INS_InsertCall(ins, IPOINT_BEFORE,
+			(AFUNPTR)docount,
+			IARG_END);
+		INS_InsertCall(ins, IPOINT_BEFORE,
 			AFUNPTR(RecordCallIns),
 			IARG_ADDRINT, INS_NextAddress(ins),
 			IARG_END);
@@ -211,6 +218,7 @@ VOID Instruction(INS ins, VOID *v) {
 		INS_InsertCall(ins, IPOINT_BEFORE,
 			AFUNPTR(RecordReturnIns),
 			IARG_CALL_ORDER, CALL_ORDER_FIRST,
+            IARG_INST_PTR,
 			IARG_REG_REFERENCE, REG_STACK_PTR,
 			IARG_END);
 	}
@@ -221,6 +229,7 @@ VOID Fini(INT32 code, VOID *v) {
     // Display the stats
     stats.displayResults(ml, trace);
     fclose(trace);
+	cout << "call instruction count: " << ccount << endl;
 }
 
 // This is the replacement routine.
@@ -244,7 +253,8 @@ void* NewCalloc(FP_CALLOC libc_calloc, UINT32 arg0, UINT32 arg1, ADDRINT returnI
     // Sum up the chunks
     nmemb += nmembe;
     // Allocate space using malloc
-    void *ptr = libc_calloc(nmemb, arg1);
+    //void *ptr = libc_calloc(nmemb, arg1);
+	void *ptr = libc_calloc(totalSize, 1);
     // Create a new MemoryAlloc
     MemoryAlloc ma = ml.add(ptr, bytes, DEFAULT_FENCE_SIZE);
     // Add the information to the trace file
