@@ -89,16 +89,16 @@ void RecordAddrSource(ADDRINT address, string message){
 	PIN_LockClient();
 	PIN_GetSourceLocation(address, &column, &line, &filename);
 	PIN_UnlockClient();
-	if (filename.length() != 0) {
-		cout << filename;
-		if (line != 0){
-			cout << ":" << dec << line;
-				if(column != 0)
-					cout << ":" << dec << column;
-		}
-		cout << ": ";
+
+    string rtnname = RTN_FindNameByAddress(address);
+    // print only if source was found.
+    if (!filename.empty()){
+		cout << filename << ":" << dec << line << ":" << column << endl;
+        cout << "Address: 0x" << hex << address << ": In function: ";
+		cout << "'" << rtnname << "': ";
 	}
-	cout << "Error: " << message << endl;
+	// Print Error message
+	cout << "Error: " << message << endl << endl;
 }
 
 bool hasEnding (std::string const &fullString, std::string const &ending) {
@@ -125,12 +125,8 @@ VOID RecordCallIns(ADDRINT nextip)
 	//cout << "Return set: " << hex << nextip << endl;
 }
 
-VOID RecordReturnIns(ADDRINT ip, ADDRINT *rsp)
+VOID RecordReturnIns(ADDRINT ip, ADDRINT retip)
 {
-	ADDRINT retval;
-	ADDRINT rspval = *rsp;
-	ADDRINT *psp = (ADDRINT *)rspval;
-	retval = *psp;
 	ADDRINT originval;
 	if(addrStack.empty()){
 		RecordAddrSource(ip, "TOO MANY RETURNS");
@@ -141,11 +137,10 @@ VOID RecordReturnIns(ADDRINT ip, ADDRINT *rsp)
 	else {
 		originval = addrStack.top();
 		addrStack.pop();
-		if(originval != retval){
-		
+		if(originval != retip){
 			RecordAddrSource(ip, "RETURN ADDRESS CHANGED");
 			stats.incInvalidReturnCount();
-			fprintf(trace, "ERROR: RETURN ADDRESS CHANGED: expected target %p, actual return target %p\n", (void *)originval, (void *)retval);
+			fprintf(trace, "ERROR: RETURN ADDRESS CHANGED: expected target %p, actual return target %p\n", (void *)originval, (void *)retip);
 			//std::exit(EXIT_FAILURE);
 		}
 	}
@@ -162,16 +157,15 @@ VOID SetInMain(void){
 VOID Instruction(INS ins, VOID *v) {
 	// RETURN ADDRESS DEFENDER
 	if (INS_IsCall(ins)) {
-		INS_InsertCall(ins, IPOINT_BEFORE,
+		INS_InsertPredicatedCall(ins, IPOINT_BEFORE,
 			AFUNPTR(RecordCallIns),
 			IARG_ADDRINT, INS_NextAddress(ins),
 			IARG_END);
 	} else if (INS_IsRet(ins)) {
-		INS_InsertCall(ins, IPOINT_BEFORE,
+		INS_InsertPredicatedCall(ins, IPOINT_BEFORE,
 			AFUNPTR(RecordReturnIns),
-			IARG_CALL_ORDER, CALL_ORDER_FIRST,
             IARG_INST_PTR,
-			IARG_REG_REFERENCE, REG_STACK_PTR,
+			IARG_RETURN_IP,
 			IARG_END);
 	}
     if(!inMain)
@@ -229,6 +223,7 @@ VOID Fini(INT32 code, VOID *v) {
 // This is the replacement routine.
 VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
+	RecordAddrSource(returnIp, "NewMalloc");
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
     stats.incMallocCount();
     MemoryAlloc ma = ml.add(v, arg0, DEFAULT_FENCE_SIZE);

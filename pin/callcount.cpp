@@ -50,29 +50,25 @@ VOID docount()
 VOID saveCall(ADDRINT nextip)
 {
 	addrStack.push(nextip);
-	OutFile << "Return set: 0x" << hex << nextip << endl;
+	OutFile << "Calling  : 0x" << hex << nextip << endl;
 }
 
-VOID checkRet(ADDRINT *rsp)
+VOID checkRet(ADDRINT retip)
 {
-	ADDRINT retval;
-
-	ADDRINT rspval = *rsp;
-	ADDRINT *psp = (ADDRINT *)rspval;
-	retval = *psp;
-	ADDRINT originval = addrStack.top();
+	ADDRINT originval;
 	if(!addrStack.empty()){
+		originval = addrStack.top();
 		addrStack.pop();
 	}
 	else{
 		cerr << "ERROR: TOO MANY RETURNS DETECTED." << endl;
 		std::exit(EXIT_FAILURE);
 	}
-	if(originval != retval){
-		cerr << "ERROR: STACK SMASHING DETECTED: expected target 0x" << hex << originval << ", actual return target 0x" << retval << endl;
+	if(originval != retip){
+		cerr << "ERROR: STACK SMASHING DETECTED: expected target 0x" << hex << originval << ", actual return target 0x" << retip << endl;
 		std::exit(EXIT_FAILURE);
 	}
-	OutFile << "Return to: 0x" << hex << retval << endl;
+	OutFile << "Returning: 0x" << hex << retip << endl;
 }
 
 // Pin calls this function every time a call instruction is encountered
@@ -93,8 +89,7 @@ VOID Instruction(INS ins, VOID *v)
 	{
 		INS_InsertCall(ins, IPOINT_BEFORE,
 			AFUNPTR(checkRet),
-			IARG_CALL_ORDER, CALL_ORDER_FIRST,
-			IARG_REG_REFERENCE, REG_STACK_PTR,
+			IARG_RETURN_IP,
 			IARG_END);
 	}
 }
