@@ -78,7 +78,7 @@ int MemList::containsAddress(void* address) {
 			// The address was a mid-memory chunk
 			index = ERR_MID_CHUNK;
 			break;
-		// Perform a check to see if the address is allocaed in a memory-fence
+		// Perform a check to see if the address is allocated in a memory-fence
 		} else if((address >= alloc.getUnderflowFence() && address < addr) || 
 			(address >= alloc.getOverflowFence() && address < (void*)((char*)alloc.getOverflowFence() + alloc.getFenceSize()))) {
 			// The address was contained in a memory fence

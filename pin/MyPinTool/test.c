@@ -25,12 +25,13 @@ int main(int argc, char const *argv[]) {
 	for(i = 0; i < 50; i++) {
 		cptr[i] = 'z';
 	}
-	// Use realloc
-	cptr = realloc(cptr, (55 * sizeof(char)));
+	// Use realloc, might return NULL
+	char* cptr2 = realloc(cptr, (55 * sizeof(char)));
 	for(; i < 55; i++) {
 		cptr[i] = 'r';
 	}
-	free(cptr); // This might be a bad call to free since calloc and realloc
+	//free(cptr); // This might be a bad call to free since calloc and realloc
+	free(cptr2);
 	free(cp1);
 	free(ptr);  // Free NULL
 	return 0;

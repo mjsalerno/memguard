@@ -242,13 +242,51 @@ void* NewCalloc(FP_CALLOC libc_calloc, UINT32 arg0, UINT32 arg1, ADDRINT returnI
     return ma.getAddress();
 }
 
-void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, UINT32 arg1, ADDRINT returnIp) {
-    // Call the relocated entry point of the original (replaced) routine.
-    void* ptr = orgFuncptr(arg0, arg1 + (2 * DEFAULT_FENCE_SIZE));
-    stats.incMallocCount();
-    MemoryAlloc ma = ml.add(ptr, arg1, DEFAULT_FENCE_SIZE);
-    fprintf(trace, "ADDED: %p %d \n", ptr, DEFAULT_FENCE_SIZE);
-    return ma.getAddress();
+void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnIp) {
+	// First, find MemoryAlloc of arg0
+	if(arg0 != NULL) {
+        // Check the MemList
+        int index  = ml.containsAddress(arg0);
+        if(index >= 0) {
+            MemoryAlloc alloc = ml.get(index);
+			// Call the original realloc 
+			void *newptr = orgFuncptr(alloc.getUnderflowFence(), arg1 + (2 * DEFAULT_FENCE_SIZE));
+			if (!newptr) {
+				// original realloc failed, so arg0 is untouched
+				// just return NULL?
+				fprintf(trace, "realloc failed for address = %p, size = %zu.\n", arg0, arg1);
+				return NULL;
+			}
+			// Remove the MemoryAlloc for arg0
+            ml.removeMatching(alloc);
+			stats.incFreeCount();
+			// Add MemoryAlloc for newptr
+			MemoryAlloc ma = ml.add(newptr, arg1, DEFAULT_FENCE_SIZE);
+			stats.incMallocCount();
+    		fprintf(trace, "REALLOCED: %p, TOTAL SIZE: %zu\n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
+    		return ma.getAddress();           
+        } else if(index == ERR_NOT_FOUND) {
+            // This currently gets hit since a blacklist is being used 
+            fprintf(trace, "Address = %p not found. Bad address in realloc.\n", arg0);
+        } else if(index == ERR_MID_CHUNK) {
+            fprintf(trace, "Mid-chunk memory in realloc @ %p\n", arg0);
+			stats.incMidFreeChunkCount();
+        } else if(index == ERR_IN_FENCE) {
+            fprintf(trace, "Memory Fence Hit in realloc @ %p\n", arg0);
+            stats.incFenceHitCount();
+        } else {
+            // This should Never happen...
+            fprintf(trace, "index = %d : Unable to realloc the memory @ %p\n", index, arg0);
+        }
+    } else {
+        // arg0 == NULL so realloc acts as malloc(arg1)
+		void* newptr = orgFuncptr(arg0, arg1 + (2 * DEFAULT_FENCE_SIZE));
+		stats.incMallocCount();
+		MemoryAlloc ma = ml.add(newptr, arg1, DEFAULT_FENCE_SIZE);
+		fprintf(trace, "ADDED: %p, TOTAL SIZE: %zu \n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
+		return ma.getAddress();
+    }
+	return NULL;
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
@@ -310,7 +348,7 @@ VOID ImageLoad(IMG img, VOID *v) {
     // Hook Functions
     HookMalloc(img);
     HookFree(img);
-  	//HookCalloc(img);
+  	HookCalloc(img);
     HookRealloc(img);
 }
 
@@ -364,6 +402,7 @@ void HookCalloc(IMG img) {
             IARG_PROTOTYPE, proto,
             IARG_ORIG_FUNCPTR,
             IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+			IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
             IARG_RETURN_IP,
             IARG_END);
         // Free the function prototype.
@@ -382,6 +421,7 @@ void HookRealloc(IMG img) {
             IARG_PROTOTYPE, proto,
             IARG_ORIG_FUNCPTR,
             IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
+			IARG_FUNCARG_ENTRYPOINT_VALUE, 1,
             IARG_RETURN_IP,
             IARG_END);
         // Free the function prototype.
