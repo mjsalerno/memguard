@@ -15,6 +15,8 @@ int main(int argc, char const *argv[]) {
     // printf("that was stack\n");
 
 	int i = 0;
+	// write beyond malloced space
+	// should generate an error
 	for (i = 0; i < 18; ++i) {
             cp1[i] = 'q';
 	}
@@ -24,14 +26,12 @@ int main(int argc, char const *argv[]) {
 		cptr[i] = 'z';
 	}
 	// Use realloc
-	/*
 	cptr = realloc(cptr, (55 * sizeof(char)));
 	for(; i < 55; i++) {
 		cptr[i] = 'r';
 	}
-	*/
 	free(cptr); // This might be a bad call to free since calloc and realloc
 	free(cp1);
-	free(ptr);
+	free(ptr);  // Free NULL
 	return 0;
 }

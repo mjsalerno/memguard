@@ -59,7 +59,7 @@ FILE * trace;
 MemList ml;
 Stats stats;
 
-std::stack<ADDRINT> addrStack;
+stack<ADDRINT> addrStack;
 
 // Print a memory read record
 VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
@@ -122,7 +122,7 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
 VOID RecordCallIns(ADDRINT nextip)
 {
 	addrStack.push(nextip);
-	//cout << "Return set: " << hex << nextip << endl;
+	//cout << "Calling  : 0x" << hex << nextip << endl;
 }
 
 VOID RecordReturnIns(ADDRINT ip, ADDRINT retip)
@@ -132,20 +132,19 @@ VOID RecordReturnIns(ADDRINT ip, ADDRINT retip)
 		RecordAddrSource(ip, "TOO MANY RETURNS");
 		stats.incInvalidReturnCount();
 		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
-		//std::exit(EXIT_FAILURE);
 	}
 	else {
 		originval = addrStack.top();
 		addrStack.pop();
 		if(originval != retip){
-			RecordAddrSource(ip, "RETURN ADDRESS CHANGED");
+			char errstr[128];
+			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retip);
+			RecordAddrSource(ip, (string)errstr);
 			stats.incInvalidReturnCount();
-			fprintf(trace, "ERROR: RETURN ADDRESS CHANGED: expected target %p, actual return target %p\n", (void *)originval, (void *)retip);
-			//std::exit(EXIT_FAILURE);
+			fprintf(trace, "ERROR: %s\n", errstr);
 		}
-	}
-	
-	//OutFile << "Return to: 0x" << hex << retval << endl;
+	}	
+	//cout << "Returning: 0x" << hex << retip << endl;
 }
 
 VOID SetInMain(void){
@@ -223,7 +222,6 @@ VOID Fini(INT32 code, VOID *v) {
 // This is the replacement routine.
 VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
-	RecordAddrSource(returnIp, "NewMalloc");
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
     stats.incMallocCount();
     MemoryAlloc ma = ml.add(v, arg0, DEFAULT_FENCE_SIZE);
@@ -253,8 +251,12 @@ void* NewCalloc(FP_CALLOC libc_calloc, UINT32 arg0, UINT32 arg1, ADDRINT returnI
 }
 
 void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, UINT32 arg1, ADDRINT returnIp) {
-    printf("New Realloc was called\n");
-    return arg0;
+    // Call the relocated entry point of the original (replaced) routine.
+    void* ptr = orgFuncptr(arg0, arg1 + (2 * DEFAULT_FENCE_SIZE));
+    stats.incMallocCount();
+    MemoryAlloc ma = ml.add(ptr, arg1, DEFAULT_FENCE_SIZE);
+    fprintf(trace, "ADDED: %p %d \n", ptr, DEFAULT_FENCE_SIZE);
+    return ma.getAddress();
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
@@ -317,7 +319,7 @@ VOID ImageLoad(IMG img, VOID *v) {
     HookMalloc(img);
     HookFree(img);
   	//HookCalloc(img);
-    //HookRealloc(img);
+    HookRealloc(img);
 }
 
 void HookFree(IMG img) {
