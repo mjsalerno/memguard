@@ -51,7 +51,7 @@ typedef void (*FP_FREE)(void*);
 typedef void* (*FP_CALLOC)(size_t, size_t);
 typedef void* (*FP_REALLOC)(void*, size_t);
 
-bool hasEnding (std::string const &fullString, std::string const &ending);
+bool hasEnding (tring const &fullString, string const &ending);
 void RecordAddrSource(ADDRINT address, string message);
 
 bool inMain = false;
@@ -101,7 +101,7 @@ void RecordAddrSource(ADDRINT address, string message){
 	cout << "Error: " << message << endl << endl;
 }
 
-bool hasEnding (std::string const &fullString, std::string const &ending) {
+bool hasEnding (string const &fullString, string const &ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
     } else {
