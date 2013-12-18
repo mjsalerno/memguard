@@ -220,7 +220,7 @@ VOID Fini(INT32 code, VOID *v) {
 }
 
 // This is the replacement routine.
-VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
+VOID* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
     stats.incMallocCount();
@@ -229,7 +229,7 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
     return ma.getAddress();
 }
 
-void* NewCalloc(FP_CALLOC libc_calloc, UINT32 arg0, UINT32 arg1, ADDRINT returnIp) {
+void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnIp) {
     // Calculate the size in bytes
     size_t bytes = (arg0 * arg1);
     size_t totalSize = bytes + (2 * DEFAULT_FENCE_SIZE);
