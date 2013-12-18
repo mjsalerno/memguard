@@ -54,7 +54,7 @@ typedef void* (*FP_REALLOC)(void*, size_t);
 bool hasEnding (string const &fullString, string const &ending);
 void RecordAddrSource(ADDRINT address, string message);
 
-bool inMain = false;
+bool checkStack = true;
 FILE * trace;
 MemList ml;
 Stats stats;
@@ -147,11 +147,6 @@ VOID RecordReturnIns(ADDRINT ip, ADDRINT retip)
 	//cout << "Returning: 0x" << hex << retip << endl;
 }
 
-VOID SetInMain(void){
-	inMain = true;
-    fprintf(trace, "Main execution started\n");
-}
-
 // Is called for every instruction and instruments reads and writes
 VOID Instruction(INS ins, VOID *v) {
 	// RETURN ADDRESS DEFENDER
@@ -167,8 +162,6 @@ VOID Instruction(INS ins, VOID *v) {
 			IARG_RETURN_IP,
 			IARG_END);
 	}
-    if(!inMain)
-        return;
     // Instruments memory accesses using a predicated call, i.e.
     // the instrumentation is called iff the instruction will actually be executed.
     //
@@ -336,8 +329,6 @@ VOID ImageLoad(IMG img, VOID *v) {
     if(IMG_IsMainExecutable(img)) {
 		RTN rtn = RTN_FindByName(img, "main");
         RTN_Open(rtn);//Must open RTN API before examining instructions
-		INS ins = RTN_InsHead(rtn);
-        INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)SetInMain, IARG_END);
         RTN_Close(rtn);
     }
 
