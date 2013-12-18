@@ -78,12 +78,6 @@ Or run it manually
 $ make PIN_ROOT=pin
 ```
 
-- test
-
-```bash
-$ make PIN_ROOT=pin test
-```
-
 - clean
 
 ```bash
