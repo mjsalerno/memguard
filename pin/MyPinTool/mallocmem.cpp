@@ -234,15 +234,7 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, UINT32 arg0, ADDRINT returnIp) {
 void* NewCalloc(FP_CALLOC libc_calloc, UINT32 arg0, UINT32 arg1, ADDRINT returnIp) {
     // Calculate the size in bytes
     size_t bytes = (arg0 * arg1);
-    size_t totalSize = bytes + (2 + DEFAULT_FENCE_SIZE);
-    // Figure out the correct amount of chunks
-    size_t nmemb = totalSize / arg1;
-    size_t nmembe = totalSize % arg1;
-    nmembe = (nmembe > 0) ? 1 : 0;
-    // Sum up the chunks
-    nmemb += nmembe;
-    // Allocate space using malloc
-    //void *ptr = libc_calloc(nmemb, arg1);
+    size_t totalSize = bytes + (2 * DEFAULT_FENCE_SIZE);
 	void *ptr = libc_calloc(totalSize, 1);
     // Create a new MemoryAlloc
     MemoryAlloc ma = ml.add(ptr, bytes, DEFAULT_FENCE_SIZE);
