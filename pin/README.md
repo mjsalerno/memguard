@@ -38,6 +38,29 @@ $ ../../../pin -t obj-intel64/malloctrace.so -- ~/Desktop/test
 ---
 #Using MyPinTool
 
+- extract the tarball you downloaded from [here](http://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool#GettingStarted)
+
+```bash
+$ tar -xvzf pin-2.13-62141-gcc.4.4.7-linux.tar.gz
+```
+
+- rename it to pin
+
+```bash
+$ mv pin-2.13-62141-gcc.4.4.7-linux pin
+```
+
+- move it to the root of the MyPinTool folder
+
+```bash
+$ mv pin cse409/pin/MyPinTool/
+```
+
+- move into the MyPinToolFolder
+
+```bash
+$ cd cse409/pin/MyPinTool/
+```
 
 - Make and test the tool.
 
