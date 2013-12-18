@@ -51,7 +51,7 @@ typedef void (*FP_FREE)(void*);
 typedef void* (*FP_CALLOC)(size_t, size_t);
 typedef void* (*FP_REALLOC)(void*, size_t);
 
-bool hasEnding (tring const &fullString, string const &ending);
+bool hasEnding (string const &fullString, string const &ending);
 void RecordAddrSource(ADDRINT address, string message);
 
 bool inMain = false;
