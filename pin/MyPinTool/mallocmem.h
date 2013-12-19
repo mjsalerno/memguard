@@ -16,6 +16,7 @@
 #define BOLD_RED "\033[1m\033[31m"
 #define BOLD_WHITE "\033[1m\033[37m"
 #define BOLDGREEN "\033[1m\033[32m"
+#define BOLD "\033[1m"
 #define RESET "\033[0m"
 /* Define file name to open */
 #define OUTPUT_LOG "stats.log"
