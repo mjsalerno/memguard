@@ -1,67 +1,16 @@
-/*BEGIN_LEGAL 
-Intel Open Source License 
-
-Copyright (c) 2002-2013 Intel Corporation. All rights reserved.
- 
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are
-met:
-
-Redistributions of source code must retain the above copyright notice,
-this list of conditions and the following disclaimer.  Redistributions
-in binary form must reproduce the above copyright notice, this list of
-conditions and the following disclaimer in the documentation and/or
-other materials provided with the distribution.  Neither the name of
-the Intel Corporation nor the names of its contributors may be used to
-endorse or promote products derived from this software without
-specific prior written permission.
- 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
-``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
-LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
-A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE INTEL OR
-ITS CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
-SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
-LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
-DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
-THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-END_LEGAL */
-
-#include "pin.H"
-#include <iostream>
-#include <cstdio>
-#include <cstring>
-#include <set>
-#include "memlist.h"
-#include "memoryalloc.h"
-#include "stats.h"
-#include <stack>
+#include "mallocmem.h"
 using namespace std;
-
-// Prototypes ; TODO: Move to Seperate Header file?
-void HookFree(IMG img);
-void HookMalloc(IMG img);
-void HookCalloc(IMG img);
-void HookRealloc(IMG img);
-
-typedef VOID* (*FP_MALLOC)(size_t);
-typedef void (*FP_FREE)(void*);
-typedef void* (*FP_CALLOC)(size_t, size_t);
-typedef void* (*FP_REALLOC)(void*, size_t);
-
-bool hasEnding (string const &fullString, string const &ending);
-void RecordAddrSource(ADDRINT address, string message);
 
 bool checkStack = true;
 FILE * trace;
 MemList ml;
 Stats stats;
-
 stack<ADDRINT> addrStack;
 
-// Print a memory read record
+/**
+ * Checks and marks bad memory reads to any heap memory
+ * allocated throughout the life of the program.
+ */
 VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
@@ -71,7 +20,10 @@ VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
     }
 }
 
-// Print a memory write record
+/**
+ * Checks and marks bad memory writes to any heap memory
+ * allocated throughout the life of the program.
+ */
 VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
@@ -80,10 +32,6 @@ VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
         stats.incInvalidWriteCount();
     }    
 }
-
-#define BOLD_RED "\033[1m\033[31m"
-#define BOLD_WHITE "\033[1m\033[37m"
-#define RESET "\033[0m"
 
 // see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html
 void RecordAddrSource(ADDRINT address, string message) {
