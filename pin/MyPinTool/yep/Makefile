@@ -29,7 +29,7 @@ CXXFLAGS += -g -Wall -Wextra -pthread -fprofile-arcs -ftest-coverage -lgcov
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = memoryalloc_unittest
+TESTS = memoryalloc_unittest memlist_unittest
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -41,7 +41,7 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 all : $(TESTS)
 
 clean :
-	rm -f $(TESTS) gtest.a gtest_main.a *.o *.gcda *.gcno
+	rm -f $(TESTS) gtest.a gtest_main.a *.o *.gcda *.gcno *.xml *.html
 
 # Builds gtest.a and gtest_main.a.
 
@@ -74,9 +74,21 @@ gtest_main.a : gtest-all.o gtest_main.o
 memoryalloc.o : $(USER_DIR)/memoryalloc.cpp $(USER_DIR)/memoryalloc.h $(GTEST_HEADERS)
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memoryalloc.cpp
 
-memoryalloc_unittest.o : $(USER_DIR)/memoryalloc_unittest.cc \
+memoryalloc_unittest.o : $(USER_DIR)/memoryalloc_unittest.cpp \
                      $(USER_DIR)/memoryalloc.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memoryalloc_unittest.cc
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memoryalloc_unittest.cpp
 
 memoryalloc_unittest : memoryalloc.o memoryalloc_unittest.o gtest_main.a
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+
+
+
+memlist.o : $(USER_DIR)/memlist.cpp $(USER_DIR)/memlist.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memlist.cpp
+
+memlist_unittest.o : $(USER_DIR)/memlist_unittest.cpp \
+                     $(USER_DIR)/memlist.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memlist_unittest.cpp
+
+memlist_unittest : memlist.o memoryalloc.o memlist_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
