@@ -137,10 +137,6 @@ void Stats::setWriteFenceUnderflow(unsigned int count) {
 	this->writeFenceUnderflow = count;
 }
 
-void Stats::setFenceHitCount(unsigned int count) {
-	this->fenceHitCount = count;
-}
-
 void Stats::setInvalidFreeCount(unsigned int count) {
 	this->invalidFreeCount = count;
 }
@@ -155,14 +151,6 @@ void Stats::setFreeNullCount(unsigned int count) {
 
 void Stats::setInvalidReturnCount(unsigned int count) {
 	this->invalidReturnCount = count;
-}
-
-void Stats::setFenceOverflowHitCount(unsigned int count) {
-	this->fenceOverflowHitCount = count;
-}
-
-void Stats::setFenceUnderflowHitCount(unsigned int count) {
-	this->fenceUnderflowHitCount = count;
 }
 
 void Stats::setFreeNotFoundCount(unsigned int count) {
