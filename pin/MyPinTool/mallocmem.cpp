@@ -1,6 +1,7 @@
 #include "mallocmem.h"
+/* Import the std namespace for libc++ namespace */
 using namespace std;
-
+/* pintool variables */
 bool checkStack = true;
 FILE * trace;
 MemList ml;
@@ -11,7 +12,7 @@ stack<ADDRINT> addrStack;
  * Checks and marks bad memory reads to any heap memory
  * allocated throughout the life of the program.
  */
-VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
+void RecordHeapMemRead(ADDRINT ip, void* addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD READ: %p \n", addr);
@@ -24,7 +25,7 @@ VOID RecordHeapMemRead(ADDRINT ip, VOID * addr) {
  * Checks and marks bad memory writes to any heap memory
  * allocated throughout the life of the program.
  */
-VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
+void RecordHeapMemWrite(ADDRINT ip, void* addr) {
     int rtn = ml.containsAddress(addr);
     if(rtn == ERR_IN_FENCE) {
         fprintf(trace,"##########BAD WRITE: %p \n", addr);
@@ -33,7 +34,10 @@ VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
     }    
 }
 
-// see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html
+/**
+ * Gets the sourcefile, source line, and function name and logs a message.
+ * see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html 
+ */
 void RecordAddrSource(ADDRINT address, string message) {
 	INT32 column = 0;   // column number within the file.
 	INT32 line = 0;     // line number within the file.
@@ -53,6 +57,9 @@ void RecordAddrSource(ADDRINT address, string message) {
 	cout << BOLD_RED << "Error: " << BOLD_WHITE << message << RESET << endl << endl;
 }
 
+/**
+ * Check for a matching pattern at the end of a string.
+ */
 bool hasEnding (string const &fullString, string const &ending) {
     if (fullString.length() >= ending.length()) {
         return (0 == fullString.compare (fullString.length() - ending.length(), ending.length(), ending));
@@ -61,22 +68,33 @@ bool hasEnding (string const &fullString, string const &ending) {
     }
 }
 
-VOID RecordStackMemRead(VOID * ip, VOID * addr) {    
+/**
+ * Detects any reads made to stack memory.
+ * TODO: Currently does nothing.
+ */
+void RecordStackMemRead(void *ip, void *addr) {    
     //printf("stack read: %p\n", addr);    
 }
 
-// Print a memory write record
-VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
+/**
+ * Detects any writes made to stack memory.
+ * TODO: Currently does nothing.
+ */
+void RecordStackMemWrite(void *ip, void* addr) {
     //printf("stack write: %p\n", addr); 
 }
 
-
-VOID RecordCallIns(ADDRINT nextip) {
+/**
+ * Saves the call instruction address.
+ */
+void RecordCallIns(ADDRINT nextip) {
 	addrStack.push(nextip);
-	//cout << "Calling  : 0x" << hex << nextip << endl;
 }
 
-VOID RecordReturnIns(ADDRINT ip, ADDRINT retip) {
+/**
+ * Checks the return address with one previously saved.
+ */
+void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 	ADDRINT originval;
 	if (addrStack.empty()) {
 		RecordAddrSource(ip, "TOO MANY RETURNS");
@@ -92,12 +110,13 @@ VOID RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 			stats.incInvalidReturnCount();
 			fprintf(trace, "ERROR: %s\n", errstr);
 		}
-	}	
-	//cout << "Returning: 0x" << hex << retip << endl;
+	}
 }
 
-// Is called for every instruction and instruments reads and writes
-VOID Instruction(INS ins, VOID *v) {	
+/**
+ * Is called for every instruction and instruments reads and writes
+ */
+void Instruction(INS ins, void *v) {	
 	// RETURN ADDRESS DEFENDER
 	if (INS_IsCall(ins)) {
 		INS_InsertPredicatedCall(ins, IPOINT_BEFORE,
@@ -154,15 +173,21 @@ VOID Instruction(INS ins, VOID *v) {
     }
 }
 
-VOID Fini(INT32 code, VOID *v) {
+/**
+ * Before the program exits this function makes
+ * prints out the results and closes the logging file.
+ */
+void Fini(INT32 code, void *v) {
     fprintf(trace, "#eof \n");
     // Display the stats
     stats.displayResults(ml, trace);
     fclose(trace);
 }
 
-// This is the replacement routine.
-VOID* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
+/**
+ * This is the function that replaces the glibc malloc call.
+ */
+void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
     stats.incMallocCount();
@@ -171,6 +196,9 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
     return ma.getAddress();
 }
 
+/**
+ * This is the function that replaces the glibc calloc call.
+ */
 void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnIp) {
     // Calculate the size in bytes
     size_t bytes = (arg0 * arg1);
@@ -184,6 +212,9 @@ void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnI
     return ma.getAddress();
 }
 
+/**
+ * This is the function that replaces the glibc realloc call.
+ */
 void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnIp) {
 	// First, find MemoryAlloc of arg0
 	if(arg0 != NULL) {
@@ -231,6 +262,9 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
 	return NULL;
 }
 
+/**
+ * This is the function that replaces the glibc free call.
+ */
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
     if(ptr != NULL) {
         // Check the MemList
@@ -270,15 +304,15 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
     }
 }
 
-
-// Pin calls this function every time a new img is loaded.
-// It is best to do probe replacement when the image is loaded,
-// because only one thread knows about the image at this time.
-VOID ImageLoad(IMG img, VOID *v) {
+/**
+ * Pin calls this function every time a new img is loaded.
+ * It is best to do probe replacement when the image is loaded,
+ * because only one thread knows about the image at this time.
+ */
+void ImageLoad(IMG img, void *v) {
     if(!hasEnding(IMG_Name(img), "libc.so.6")) {
         return;
     }
-
     // Hook Functions
     HookMalloc(img);
     HookFree(img);
@@ -286,6 +320,9 @@ VOID ImageLoad(IMG img, VOID *v) {
     HookRealloc(img);
 }
 
+/**
+ * Helper method for hooking free during the ImageLoad.
+ */
 void HookFree(IMG img) {
     RTN rtn = RTN_FindByName(img, "free");
     if(RTN_Valid(rtn)) {
@@ -305,6 +342,9 @@ void HookFree(IMG img) {
     }
 }
 
+/**
+ * Helper method for hooking malloc during the ImageLoad.
+ */
 void HookMalloc(IMG img) {
     // See if malloc() is present in the image.  If so, replace it.
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
@@ -324,6 +364,9 @@ void HookMalloc(IMG img) {
     }
 }
 
+/**
+ * Helper method for hooking calloc during the ImageLoad.
+ */
 void HookCalloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "calloc");
@@ -343,6 +386,9 @@ void HookCalloc(IMG img) {
     }
 }
 
+/**
+ * Helper method for hooking realloc during the ImageLoad.
+ */
 void HookRealloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "realloc");
@@ -362,23 +408,22 @@ void HookRealloc(IMG img) {
     }
 }
 
-/* ===================================================================== */
-/* Print Help Message                                                    */
-/* ===================================================================== */
-
+/**
+ *
+ */
 INT32 Usage() {
-    cerr << "This tool demonstrates how to replace an original" << endl;
-    cerr << " function with a custom function defined in the tool " << endl;
-    cerr << " using probes.  The replacement function has a different " << endl;
-    cerr << " signature from that of the original replaced function." << endl;
+    cerr << "This tool hooks and tracks the following glibc functions:" << endl;
+    cerr << "malloc, calloc, realloc, and free." << endl;
+    cerr << "Stats are collected about these memory allocations and usage." << endl;
+    cerr << "Ths tool also detects stack smashing attempts, and logs those as well." << endl;
     cerr << endl << KNOB_BASE::StringKnobSummary() << endl;
     return -1;
 }
 
-/* ===================================================================== */
-/* Main: Initialize and start Pin in Probe mode.                         */
-/* ===================================================================== */
-
+/**
+ * Main Function. 
+ * Initializes pin, and starts the instrumented program.
+ */
 int main(INT32 argc, CHAR *argv[]) {
     // Initialize symbol processing
     PIN_InitSymbols();
