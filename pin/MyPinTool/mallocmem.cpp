@@ -54,7 +54,6 @@ typedef void* (*FP_REALLOC)(void*, size_t);
 bool hasEnding (string const &fullString, string const &ending);
 void RecordAddrSource(ADDRINT address, string message);
 
-bool checkStack = true;
 FILE * trace;
 MemList ml;
 Stats stats;
@@ -119,9 +118,8 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
 }
 
 
-VOID RecordCallIns(ADDRINT nextip) {
+VOID RecordCallIns(ADDRINT nextip, ADDRINT target) {
 	addrStack.push(nextip);
-	//cout << "Calling  : 0x" << hex << nextip << endl;
 }
 
 VOID RecordReturnIns(ADDRINT ip, ADDRINT retip) {
@@ -145,15 +143,22 @@ VOID RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 }
 
 // Is called for every instruction and instruments reads and writes
-VOID Instruction(INS ins, VOID *v) {	
+VOID Instruction(INS ins, VOID *v) {
 	// RETURN ADDRESS DEFENDER
 	if (INS_IsCall(ins)) {
-		INS_InsertPredicatedCall(ins, IPOINT_BEFORE,
-			AFUNPTR(RecordCallIns),
-			IARG_ADDRINT, INS_NextAddress(ins),
-			IARG_END);
+		if (INS_IsDirectCall(ins)) {
+			INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(RecordCallIns),
+				IARG_ADDRINT, INS_NextAddress(ins),
+				IARG_ADDRINT, INS_DirectBranchOrCallTargetAddress(ins),
+				IARG_END);
+		} else {
+			INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(RecordCallIns),
+				IARG_ADDRINT, INS_NextAddress(ins),
+				IARG_BRANCH_TARGET_ADDR,
+				IARG_END);
+		}
 	} else if (INS_IsRet(ins)) {
-		INS_InsertPredicatedCall(ins, IPOINT_BEFORE,
+		INS_InsertCall(ins, IPOINT_BEFORE,
 			AFUNPTR(RecordReturnIns),
 			IARG_INST_PTR,
 			IARG_RETURN_IP,
@@ -206,11 +211,25 @@ VOID Fini(INT32 code, VOID *v) {
     fprintf(trace, "#eof \n");
     // Display the stats
     stats.displayResults(ml, trace);
+	//print the return address stack
+	fprintf(trace, "TOP Address Stack:\n");
+	while (!addrStack.empty()) {
+		ADDRINT leftover = addrStack.top();
+		fprintf(trace, "%p\n", (void *)leftover);
+		IMG img = IMG_FindByAddress(leftover);
+		if (IMG_Valid(img)) {
+			cout << IMG_Name(img) << endl;
+		}
+		addrStack.pop();
+	}
+	fprintf(trace, "BOTTOM Address Stack:\n");
     fclose(trace);
 }
 
 // This is the replacement routine.
 VOID* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
+	// Pop the call for this function
+	addrStack.pop();
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
     stats.incMallocCount();
@@ -220,6 +239,8 @@ VOID* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
 }
 
 void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnIp) {
+	// Pop the call for this function
+	addrStack.pop();
     // Calculate the size in bytes
     size_t bytes = (arg0 * arg1);
     size_t totalSize = bytes + (2 * DEFAULT_FENCE_SIZE);
@@ -233,6 +254,8 @@ void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnI
 }
 
 void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnIp) {
+	// Pop the call for this function
+	addrStack.pop();
 	// First, find MemoryAlloc of arg0
 	if(arg0 != NULL) {
         // Check the MemList
@@ -280,6 +303,8 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
 }
 
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
+	// Pop the call for this function
+	addrStack.pop();
     if(ptr != NULL) {
         // Check the MemList
         int index  = ml.containsAddress(ptr);

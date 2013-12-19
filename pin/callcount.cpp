@@ -47,10 +47,10 @@ VOID docount()
 	ccount++;
 }
 
-VOID saveCall(ADDRINT nextip)
+VOID saveCall(ADDRINT nextip, ADDRINT target)
 {
 	addrStack.push(nextip);
-	OutFile << "Calling  : 0x" << hex << nextip << endl;
+	OutFile << "Calling  : 0x" << hex << target << "Returning to: 0x" << nextip << endl;
 }
 
 VOID checkRet(ADDRINT retip)
@@ -78,10 +78,18 @@ VOID Instruction(INS ins, VOID *v)
 		lastINS = false;
 	}
 	// Insert a call to docount before every call instruction, no arguments are passed
-	if (INS_IsCall(ins)) {	
-		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)docount,IARG_END);
-		INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(saveCall),
-			IARG_ADDRINT, INS_NextAddress(ins), IARG_END);		
+	if (INS_IsCall(ins)) {
+		if (INS_IsDirectCall(ins)){
+			INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(saveCall),
+				IARG_ADDRINT, INS_NextAddress(ins),
+				IARG_ADDRINT, INS_DirectBranchOrCallTargetAddress(ins),
+				IARG_END);
+		} else {
+			INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(saveCall),
+				IARG_ADDRINT, INS_NextAddress(ins),
+				IARG_BRANCH_TARGET_ADDR,
+				IARG_END);
+		}
 	} else if (INS_IsRet(ins)) {
 		INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(checkRet),IARG_RETURN_IP,IARG_END);
 		lastINS = true;
@@ -98,6 +106,19 @@ VOID Fini(INT32 code, VOID *v)
     OutFile.setf(ios::showbase);
     OutFile << "Count " << dec << ccount << endl;
     OutFile.close();
+	//print the return address stack
+	cout << "TOP Address Stack:" << endl;
+	while (!addrStack.empty()) {
+		ADDRINT leftover = addrStack.top();
+		cout << "0x" << hex <<leftover;
+		IMG img = IMG_FindByAddress(leftover);
+		if (IMG_Valid(img)) {
+			cout << " in IMG: " << IMG_Name(img);
+		}
+		cout << endl;
+		addrStack.pop();
+	}
+	cout << "BOTTOM Address Stack:" << endl;
 }
 
 /* ===================================================================== */
