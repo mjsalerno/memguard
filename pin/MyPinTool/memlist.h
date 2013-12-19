@@ -7,7 +7,10 @@
 /* Define error code Constants */
 #define ERR_NOT_FOUND -1
 #define ERR_MID_CHUNK -2
-#define ERR_IN_FENCE -3 
+/* Detecting the different locations of overflow */
+#define ERR_FENCE_UNDERFLOW -3
+#define ERR_FENCE_OVERFLOW -4
+// #define ERR_IN_FENCE -3 
 
 using namespace std;
 

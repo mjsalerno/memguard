@@ -79,10 +79,13 @@ int MemList::containsAddress(void* address) {
 			index = ERR_MID_CHUNK;
 			break;
 		// Perform a check to see if the address is allocated in a memory-fence
-		} else if((address >= alloc.getUnderflowFence() && address < addr) || 
-			(address >= alloc.getOverflowFence() && address < (void*)((char*)alloc.getOverflowFence() + alloc.getFenceSize()))) {
+		} else if((address >= alloc.getUnderflowFence() && address < addr)) {
 			// The address was contained in a memory fence
-			index = ERR_IN_FENCE;
+			index = ERR_FENCE_UNDERFLOW;
+			break;
+		} else if(address >= alloc.getOverflowFence() && address < (void*)((char*)alloc.getOverflowFence() + alloc.getFenceSize())) {
+			// The address was contained in a memory fence
+			index = ERR_FENCE_OVERFLOW;
 			break;
 		}
 	}
