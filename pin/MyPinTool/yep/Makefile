@@ -17,7 +17,7 @@
 GTEST_DIR = gtest
 
 # Where to find user code.
-USER_DIR = .
+USER_DIR = src
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -29,7 +29,7 @@ CXXFLAGS += -g -Wall -Wextra -pthread -fprofile-arcs -ftest-coverage -lgcov
 
 # All tests produced by this Makefile.  Remember to add new tests you
 # created to the list.
-TESTS = sample1_unittest
+TESTS = memoryalloc_unittest
 
 # All Google Test headers.  Usually you shouldn't change this
 # definition.
@@ -41,7 +41,7 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 all : $(TESTS)
 
 clean :
-	rm -f $(TESTS) gtest.a gtest_main.a *.o
+	rm -f $(TESTS) gtest.a gtest_main.a *.o *.gcda *.gcno
 
 # Builds gtest.a and gtest_main.a.
 
@@ -67,16 +67,16 @@ gtest.a : gtest-all.o
 gtest_main.a : gtest-all.o gtest_main.o
 	$(AR) $(ARFLAGS) $@ $^
 
-# Builds a sample test.  A test should link with either gtest.a or
+# Builds a memoryalloc test.  A test should link with either gtest.a or
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-sample1.o : $(USER_DIR)/sample1.cc $(USER_DIR)/sample1.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/sample1.cc
+memoryalloc.o : $(USER_DIR)/memoryalloc.cpp $(USER_DIR)/memoryalloc.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memoryalloc.cpp
 
-sample1_unittest.o : $(USER_DIR)/sample1_unittest.cc \
-                     $(USER_DIR)/sample1.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/sample1_unittest.cc
+memoryalloc_unittest.o : $(USER_DIR)/memoryalloc_unittest.cc \
+                     $(USER_DIR)/memoryalloc.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memoryalloc_unittest.cc
 
-sample1_unittest : sample1.o sample1_unittest.o gtest_main.a
+memoryalloc_unittest : memoryalloc.o memoryalloc_unittest.o gtest_main.a
 	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
