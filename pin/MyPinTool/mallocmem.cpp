@@ -200,6 +200,7 @@ void Instruction(INS ins, void *v) {
  * prints out the results and closes the logging file.
  */
 void Fini(INT32 code, void *v) {
+    printf("Check %s %s %s for the results of this execution.\n", BOLDGREEN, OUTPUT_LOG, RESET);
     fprintf(trace, "#eof \n");
     // Display the stats
     stats.displayResults(ml, trace);
@@ -464,7 +465,7 @@ int main(INT32 argc, CHAR *argv[]) {
     if (PIN_Init(argc, argv)) 
         return Usage();
     // Open up the trace file
-    trace = fopen("zzz.out", "w");
+    trace = fopen(OUTPUT_LOG, "w");
     // Register ImageLoad to be called when an image is loaded
     IMG_AddInstrumentFunction(ImageLoad, 0);
     INS_AddInstrumentFunction(Instruction, 0);
