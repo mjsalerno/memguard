@@ -1,36 +1,49 @@
 #include "stats.h"
 
 Stats::Stats() {
-	this->allocCount = 0;
-	this->freeCount = 0;
-	this->invalidReadCount = 0;
-	this->invalidWriteCount = 0;
-	this->fenceHitCount = 0;
-	this->invalidFreeCount = 0;
-	this->midFreeChunkCount = 0;
-	this->freeNullCount = 0;
-	this->invalidReturnCount = 0;
-	this->fenceOverflowHitCount = 0;
-	this->fenceUnderflowHitCount = 0;
+	this->reset();
 }
 
 void Stats::reset() {
+	/* Allocation Stats */
 	this->allocCount = 0;
+	this->mallocCount = 0;
+	this->callocCount = 0;
+	this->reallocCount = 0;
+	/* Deallocation Stats */
 	this->freeCount = 0;
-	this->invalidReadCount = 0;
-	this->invalidWriteCount = 0;
-	this->fenceHitCount = 0;
+	/* Invalid Free Stats*/
 	this->invalidFreeCount = 0;
 	this->midFreeChunkCount = 0;
 	this->freeNullCount = 0;
+	/* Invalid Read Stats */
+	this->invalidReadCount = 0;
+	this->readFenceOverflow = 0;
+	this->readFenceUnderflow = 0;
+	/* Invalid Write Stats */
+	this->invalidWriteCount = 0;
+	this->writeFenceOverflow = 0;
+	this->writeFenceUnderflow = 0;
+	/* Stack Smashing Stats */
 	this->invalidReturnCount = 0;
-	this->fenceOverflowHitCount = 0;
-	this->fenceUnderflowHitCount = 0;
 }
-
+/* Getters */
 unsigned int Stats::getAllocCount() {
 	return this->allocCount;
 }
+
+unsigned int Stats::getMallocCount() {
+	return this->mallocCount;
+}
+
+unsigned int Stats::getCallocCount() {
+	return this->callocCount;
+}
+
+unsigned int Stats::getReallocCount() {
+	return this->reallocCount;
+}
+
 unsigned int Stats::getFreeCount() {
 	return this->freeCount;
 }
@@ -38,12 +51,24 @@ unsigned int Stats::getInvalidReadCount() {
 	return this->invalidReadCount;
 }
 
+unsigned int Stats::getReadFenceOverflow() {
+	return this->readFenceOverflow;
+}
+
+unsigned int Stats::getReadFenceUnderflow() {
+	return this->readFenceUnderflow;
+}
+
 unsigned int Stats::getInvalidWriteCount() {
 	return this->invalidWriteCount;
 }
 
-unsigned int Stats::getFenceHitCount() {
-	return this->fenceHitCount;
+unsigned int Stats::getWriteFenceOverflow() {
+	return this->writeFenceOverflow;
+}
+
+unsigned int Stats::getWriteFenceUnderflow() {
+	return this->writeFenceUnderflow;
 }
 
 unsigned int Stats::getInvalidFreeCount() {
@@ -66,15 +91,21 @@ unsigned int Stats::getInvalidReturnCount() {
 	return this->invalidReturnCount;
 }
 
-unsigned int Stats::getFenceOverflowHitCount() {
-	return this->fenceOverflowHitCount;
-}
-
-unsigned int Stats::getFenceUnderflowHitCount() {
-	return this->fenceUnderflowHitCount;
-}
+/* Setters */
 
 void Stats::setAllocCount(unsigned int count) {
+	this->allocCount = count;
+}
+
+void Stats::setMallocCount(unsigned int count) {
+	this->allocCount = count;
+}
+
+void Stats::setCallocCount(unsigned int count) {
+	this->allocCount = count;
+}
+
+void Stats::setReallocCount(unsigned int count) {
 	this->allocCount = count;
 }
 
@@ -86,8 +117,24 @@ void Stats::setInvalidReadCount(unsigned int count) {
 	this->invalidReadCount = count;
 }
 
+void Stats::setReadFenceOverflow(unsigned int count) {
+	this->readFenceOverflow = count;
+}
+
+void Stats::setReadFenceUnderflow(unsigned int count) {
+	this->readFenceUnderflow = count;
+}
+
 void Stats::setInvalidWriteCount(unsigned int count) {
 	this->invalidWriteCount = count;
+}
+
+void Stats::setWriteFenceOverflow(unsigned int count) {
+	this->writeFenceOverflow = count;
+}
+
+void Stats::setWriteFenceUnderflow(unsigned int count) {
+	this->writeFenceUnderflow = count;
 }
 
 void Stats::setFenceHitCount(unsigned int count) {
@@ -122,8 +169,22 @@ void Stats::setFreeNotFoundCount(unsigned int count) {
 	this->freeNotFoundCount = count;
 }
 
+/* Increment Count Functions */
+
 void Stats::incAllocCount() {
 	this->allocCount++;
+}
+
+void Stats::incMallocCount() {
+	this->mallocCount++;
+}
+
+void Stats::incCallocCount() {
+	this->callocCount++;
+}
+
+void Stats::incReallocCount() {
+	this->reallocCount++;
 }
 
 void Stats::incFreeCount() {
@@ -134,12 +195,24 @@ void Stats::incInvalidReadCount() {
 	this->invalidReadCount++;
 }
 
+void Stats::incReadFenceOverflow() {
+	this->readFenceOverflow++;
+}
+
+void Stats::incReadFenceUnderflow() {
+	this->readFenceUnderflow++;
+}
+
 void Stats::incInvalidWriteCount() {
 	this->invalidWriteCount++;
 }
 
-void Stats::incFenceHitCount() {
-	this->fenceHitCount++;
+void Stats::incWriteFenceOverflow() {
+	this->writeFenceOverflow++;
+}
+
+void Stats::incWriteFenceUnderflow() {
+	this->writeFenceUnderflow++;
 }
 
 void Stats::incInvalidFreeCount() {
@@ -154,22 +227,17 @@ void Stats::incFreeNullCount() {
 	this->freeNullCount++;
 }
 
-void Stats::incInvalidReturnCount() {
-	this->invalidReturnCount++;
-}
-
-void Stats::incFenceOverflowHitCount() {
-	this->fenceOverflowHitCount++;
-}
-
-void Stats::incFenceUnderflowHitCount() {
-	this->fenceUnderflowHitCount++;
-}
-
 void Stats::incFreeNotFoundCount() {
 	this->freeNotFoundCount++;
 }
 
+void Stats::incInvalidReturnCount() {
+	this->invalidReturnCount++;
+}
+
+/**
+ * Display All information tracked by the pintool.
+ */
 void Stats::displayResults(MemList memlist, FILE *fp) {
 	if(fp == NULL) {
 		fp = stdin;
@@ -179,23 +247,23 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "%-20s %s\n", "ACTIONS ", "COUNT");
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "allocations: ", this->allocCount);
-	fprintf(fp, "%-20s %d\n", "    malloc", 0);
-	fprintf(fp, "%-20s %d\n", "    calloc", 0);
-	fprintf(fp, "%-20s %d\n", "    realloc", 0);
+	fprintf(fp, "%-20s %d\n", "    malloc", this->mallocCount);
+	fprintf(fp, "%-20s %d\n", "    calloc", this->callocCount);
+	fprintf(fp, "%-20s %d\n", "    realloc", this->reallocCount);
 	fprintf(fp, "%-20s %d\n", "deallocations: ", this->freeCount);
 	fprintf(fp, "%-20s %d\n", "    free ", this->freeCount);
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid reads: ", this->invalidReadCount);
+	fprintf(fp, "%-20s %d\n", "    underflow: ", this->readFenceUnderflow);
+	fprintf(fp, "%-20s %d\n", "    overflow: ", this->readFenceOverflow);
 	fprintf(fp, "%-20s %d\n", "invalid writes: ", this->invalidWriteCount);
+	fprintf(fp, "%-20s %d\n", "    underflow: ", this->writeFenceUnderflow);
+	fprintf(fp, "%-20s %d\n", "    overflow: ", this->writeFenceOverflow);
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid frees: ", this->invalidFreeCount);
 	fprintf(fp, "%-20s %d\n", "    not found: ", this->freeNotFoundCount);
 	fprintf(fp, "%-20s %d\n", "    null free: ", this->freeNullCount);
 	fprintf(fp, "%-20s %d\n", "    midchunk free: ", this->midFreeChunkCount);
-	fprintf(fp, "----------------------------------\n");
-	fprintf(fp, "%-20s %d\n", "fence hit: ", this->fenceHitCount);
-	fprintf(fp, "%-20s %d\n", "    underflow: ", this->fenceUnderflowHitCount);
-	fprintf(fp, "%-20s %d\n", "    overflow: ", this->fenceOverflowHitCount);
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid returns: ", this->invalidReturnCount);
 	fprintf(fp, "==================================\n");
