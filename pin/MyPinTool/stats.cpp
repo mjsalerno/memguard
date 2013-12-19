@@ -10,6 +10,8 @@ Stats::Stats() {
 	this->midFreeChunkCount = 0;
 	this->freeNullCount = 0;
 	this->invalidReturnCount = 0;
+	this->fenceOverflowHitCount = 0;
+	this->fenceUnderflowHitCount = 0;
 }
 
 void Stats::reset() {
@@ -22,6 +24,8 @@ void Stats::reset() {
 	this->midFreeChunkCount = 0;
 	this->freeNullCount = 0;
 	this->invalidReturnCount = 0;
+	this->fenceOverflowHitCount = 0;
+	this->fenceUnderflowHitCount = 0;
 }
 
 unsigned int Stats::getMallocCount() {
@@ -56,6 +60,14 @@ unsigned int Stats::getFreeNullCount() {
 
 unsigned int Stats::getInvalidReturnCount() {
 	return this->invalidReturnCount;
+}
+
+unsigned int Stats::getFenceOverflowHitCount() {
+	return this->fenceOverflowHitCount;
+}
+
+unsigned int Stats::getFenceUnderflowHitCount() {
+	return this->fenceUnderflowHitCount;
 }
 
 void Stats::setMallocCount(unsigned int count) {
@@ -94,6 +106,14 @@ void Stats::setInvalidReturnCount(unsigned int count) {
 	this->invalidReturnCount = count;
 }
 
+void Stats::setFenceOverflowHitCount(unsigned int count) {
+	this->fenceOverflowHitCount = count;
+}
+
+void Stats::setFenceUnderflowHitCount(unsigned int count) {
+	this->fenceUnderflowHitCount = count;
+}
+
 void Stats::incMallocCount() {
 	this->mallocCount++;
 }
@@ -130,6 +150,14 @@ void Stats::incInvalidReturnCount() {
 	this->invalidReturnCount++;
 }
 
+void Stats::incFenceOverflowHitCount() {
+	this->fenceOverflowHitCount++;
+}
+
+void Stats::incFenceUnderflowHitCount() {
+	this->fenceUnderflowHitCount++;
+}
+
 void Stats::displayResults(MemList memlist, FILE *fp) {
 	if(fp == NULL) {
 		fp = stdin;
@@ -144,6 +172,8 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "%-20s %d\n", "null free: ", this->freeNullCount);
 	fprintf(fp, "%-20s %d\n", "midchunk free: ", this->midFreeChunkCount);
 	fprintf(fp, "%-20s %d\n", "fence hit: ", this->fenceHitCount);
+	fprintf(fp, "%-20s %d\n", "    underflow: ", this->fenceUnderflowHitCount);
+	fprintf(fp, "%-20s %d\n", "    overflow: ", this->fenceOverflowHitCount);
 	fprintf(fp, "%-20s %d\n", "invalid returns: ", this->invalidReturnCount);
 	// Print out the contents of memlist if it was provided.
 	fprintf(fp, "=== MEMLIST CONTENTS ===\n");
