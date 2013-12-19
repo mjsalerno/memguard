@@ -15,7 +15,10 @@
 /* Define colors used for our error print statements */
 #define BOLD_RED "\033[1m\033[31m"
 #define BOLD_WHITE "\033[1m\033[37m"
+#define BOLDGREEN "\033[1m\033[32m"
 #define RESET "\033[0m"
+/* Define file name to open */
+#define OUTPUT_LOG "stats.log"
 /* Typedefs for hooked functions */
 typedef void* (*FP_MALLOC)(size_t);
 typedef void (*FP_FREE)(void*);
