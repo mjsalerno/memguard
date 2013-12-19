@@ -71,12 +71,12 @@ void RecordAddrSource(ADDRINT address, string message) {
     string rtnname = RTN_FindNameByAddress(address);
     // print only if source was found.
     if (!filename.empty()){
-		cout << BOLD_WHITE << filename << ":" << dec << line << ":" << column << RESET << endl;
-        cout << BOLD_WHITE << "Address: 0x" << hex << address << ": In function: ";
+		cout << BOLD << filename << ":" << dec << line << ":" << column << RESET << endl;
+        cout << BOLD << "Address: 0x" << hex << address << ": In function: ";
 		cout << "'" << rtnname << "': " << RESET;
 	}
 	// Print Error message
-	cout << BOLD_RED << "Error: " << BOLD_WHITE << message << RESET << endl << endl;
+	cout << BOLD_RED << "Error: " << BOLD << message << RESET << endl << endl;
 }
 
 /**
