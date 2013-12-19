@@ -4,7 +4,7 @@
 #include "memlist.h"
 class Stats {
 private:
-	unsigned int mallocCount;
+	unsigned int allocCount;
 	unsigned int freeCount;
 	
 	unsigned int invalidReadCount;
@@ -24,7 +24,7 @@ private:
 	unsigned int invalidReturnCount;
 public:
 	Stats();
-	unsigned int getMallocCount();
+	unsigned int getAllocCount();
 	unsigned int getFreeCount();
 	unsigned int getInvalidReadCount();
 	unsigned int getInvalidWriteCount();
@@ -37,7 +37,7 @@ public:
 	unsigned int getFenceOverflowHitCount();
 	unsigned int getFenceUnderflowHitCount();
 
-	void setMallocCount(unsigned int count);
+	void setAllocCount(unsigned int count);
 	void setFreeCount(unsigned int count);
 	void setInvalidReadCount(unsigned int count);
 	void setInvalidWriteCount(unsigned int count);
@@ -50,7 +50,7 @@ public:
 	void setFenceOverflowHitCount(unsigned int count);
 	void setFenceUnderflowHitCount(unsigned int count);
 
-	void incMallocCount();
+	void incAllocCount();
 	void incFreeCount();
 	void incInvalidReadCount();
 	void incInvalidWriteCount();
