@@ -1,7 +1,7 @@
 #include "stats.h"
 
 Stats::Stats() {
-	this->mallocCount = 0;
+	this->allocCount = 0;
 	this->freeCount = 0;
 	this->invalidReadCount = 0;
 	this->invalidWriteCount = 0;
@@ -15,7 +15,7 @@ Stats::Stats() {
 }
 
 void Stats::reset() {
-	this->mallocCount = 0;
+	this->allocCount = 0;
 	this->freeCount = 0;
 	this->invalidReadCount = 0;
 	this->invalidWriteCount = 0;
@@ -28,8 +28,8 @@ void Stats::reset() {
 	this->fenceUnderflowHitCount = 0;
 }
 
-unsigned int Stats::getMallocCount() {
-	return this->mallocCount;
+unsigned int Stats::getAllocCount() {
+	return this->allocCount;
 }
 unsigned int Stats::getFreeCount() {
 	return this->freeCount;
@@ -74,8 +74,8 @@ unsigned int Stats::getFenceUnderflowHitCount() {
 	return this->fenceUnderflowHitCount;
 }
 
-void Stats::setMallocCount(unsigned int count) {
-	this->mallocCount = count;
+void Stats::setAllocCount(unsigned int count) {
+	this->allocCount = count;
 }
 
 void Stats::setFreeCount(unsigned int count) {
@@ -122,8 +122,8 @@ void Stats::setFreeNotFoundCount(unsigned int count) {
 	this->freeNotFoundCount = count;
 }
 
-void Stats::incMallocCount() {
-	this->mallocCount++;
+void Stats::incAllocCount() {
+	this->allocCount++;
 }
 
 void Stats::incFreeCount() {
@@ -178,7 +178,7 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "==================================\n");
 	fprintf(fp, "%-20s %s\n", "ACTIONS ", "COUNT");
 	fprintf(fp, "----------------------------------\n");
-	fprintf(fp, "%-20s %d\n", "allocations: ", this->mallocCount);
+	fprintf(fp, "%-20s %d\n", "allocations: ", this->allocCount);
 	fprintf(fp, "%-20s %d\n", "    malloc", 0);
 	fprintf(fp, "%-20s %d\n", "    calloc", 0);
 	fprintf(fp, "%-20s %d\n", "    realloc", 0);
