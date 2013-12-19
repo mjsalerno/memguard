@@ -409,7 +409,8 @@ void HookRealloc(IMG img) {
 }
 
 /**
- *
+ * Prints out the usuage of this tool incase someone trys to compile and run this program,
+ * instead of linking it with pin as a .so.
  */
 INT32 Usage() {
     cerr << "This tool hooks and tracks the following glibc functions:" << endl;
