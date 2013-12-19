@@ -31,6 +31,10 @@ utest
 test
 gtest
 *.log
+*.gcda
+*.gcno
+*.xml
+*.html
 
 #NetBeans stuff
 nbproject/private/
