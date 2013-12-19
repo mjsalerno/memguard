@@ -14,10 +14,22 @@ stack<ADDRINT> addrStack;
  */
 void RecordHeapMemRead(ADDRINT ip, void* addr) {
     int rtn = ml.containsAddress(addr);
-    if(rtn == ERR_IN_FENCE) {
-        fprintf(trace,"##########BAD READ: %p \n", addr);
-		RecordAddrSource(ip, "BAD READ");
+    if(rtn == ERR_FENCE_UNDERFLOW || rtn == ERR_FENCE_OVERFLOW) {
+        // General Counter
         stats.incInvalidReadCount();
+        stats.incFenceHitCount();
+        switch(rtn) {
+            case ERR_FENCE_UNDERFLOW:
+                stats.incFenceUnderflowHitCount();
+                fprintf(trace,"##########BAD READ - UNDERFLOW: %p \n", addr);
+                RecordAddrSource(ip, "BAD READ - UNDERFLOW");
+                break;
+            case ERR_FENCE_OVERFLOW:
+                stats.incFenceOverflowHitCount();
+                fprintf(trace,"##########BAD READ - OVERFLOW: %p \n", addr);
+                RecordAddrSource(ip, "BAD READ - OVERFLOW");
+                break;    
+        }
     }
 }
 
@@ -27,11 +39,23 @@ void RecordHeapMemRead(ADDRINT ip, void* addr) {
  */
 void RecordHeapMemWrite(ADDRINT ip, void* addr) {
     int rtn = ml.containsAddress(addr);
-    if(rtn == ERR_IN_FENCE) {
-        fprintf(trace,"##########BAD WRITE: %p \n", addr);
-		RecordAddrSource(ip, "BAD WRITE");
+    if(rtn == ERR_FENCE_UNDERFLOW || rtn == ERR_FENCE_OVERFLOW) {
+        // General Counter
         stats.incInvalidWriteCount();
-    }    
+        stats.incFenceHitCount();
+        switch(rtn) {
+            case ERR_FENCE_UNDERFLOW:
+                stats.incFenceUnderflowHitCount();
+                fprintf(trace,"##########BAD WRITE - UNDERFLOW: %p \n", addr);
+                RecordAddrSource(ip, "BAD WRITE - UNDERFLOW");
+                break;
+            case ERR_FENCE_OVERFLOW:
+                stats.incFenceOverflowHitCount();
+                fprintf(trace,"##########BAD WRITE - OVERFLOW: %p \n", addr);
+                RecordAddrSource(ip, "BAD WRITE - OVERFLOW");
+                break;    
+        }
+    }
 }
 
 /**
@@ -244,9 +268,14 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
         } else if(index == ERR_MID_CHUNK) {
             fprintf(trace, "Mid-chunk memory in realloc @ %p\n", arg0);
 			stats.incMidFreeChunkCount();
-        } else if(index == ERR_IN_FENCE) {
-            fprintf(trace, "Memory Fence Hit in realloc @ %p\n", arg0);
+        } else if(index == ERR_FENCE_UNDERFLOW) {
+            fprintf(trace, "Memory Fence Hit in realloc - Underflow @ %p\n", arg0);
             stats.incFenceHitCount();
+            stats.incFenceUnderflowHitCount();
+        } else if(index == ERR_FENCE_OVERFLOW) {
+            fprintf(trace, "Memory Fence Hit in realloc - Overflow @ %p\n", arg0);
+            stats.incFenceHitCount();
+            stats.incFenceOverflowHitCount();
         } else {
             // This should Never happen...
             fprintf(trace, "index = %d : Unable to realloc the memory @ %p\n", index, arg0);
@@ -281,19 +310,17 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             // This currently gets hit since a blacklist is being used 
             fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
             stats.incInvalidFreeCount();
-            /*
-            // Dump all memory currently stored
-            char buffer[1024];
-            for(int i = 0; i < ml.size(); i++) {
-                fprintf(trace, "%s\n", ml.get(i).toString(buffer, 1024));
-            }
-            */
         } else if(index == ERR_MID_CHUNK) {
             fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
             stats.incMidFreeChunkCount();
-        } else if(index == ERR_IN_FENCE) {
-            fprintf(trace, "Memory Fence Hit @ %p\n", ptr);
+        } else if(index == ERR_FENCE_UNDERFLOW) {
+            fprintf(trace, "Memory Fence Hit - Underflow @ %p\n", ptr);
             stats.incFenceHitCount();
+            stats.incFenceUnderflowHitCount();
+        } else if(index == ERR_FENCE_OVERFLOW) {
+            fprintf(trace, "Memory Fence Hit - Overflow @ %p\n", ptr);
+            stats.incFenceHitCount();
+            stats.incFenceOverflowHitCount();
         } else {
             // This should Never happen...
             fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
