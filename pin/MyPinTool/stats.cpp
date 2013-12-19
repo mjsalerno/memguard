@@ -179,7 +179,11 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "%-20s %s\n", "ACTIONS ", "COUNT");
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "allocations: ", this->mallocCount);
+	fprintf(fp, "%-20s %d\n", "    malloc", 0);
+	fprintf(fp, "%-20s %d\n", "    calloc", 0);
+	fprintf(fp, "%-20s %d\n", "    realloc", 0);
 	fprintf(fp, "%-20s %d\n", "deallocations: ", this->freeCount);
+	fprintf(fp, "%-20s %d\n", "    free ", this->freeCount);
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid reads: ", this->invalidReadCount);
 	fprintf(fp, "%-20s %d\n", "invalid writes: ", this->invalidWriteCount);
