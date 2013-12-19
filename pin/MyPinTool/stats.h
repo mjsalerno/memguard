@@ -12,6 +12,8 @@ private:
 	unsigned int midFreeChunkCount;
 	unsigned int freeNullCount;
 	unsigned int fenceHitCount;
+	unsigned int fenceOverflowHitCount;
+	unsigned int fenceUnderflowHitCount;
 	unsigned int invalidReturnCount;
 public:
 	Stats();
@@ -24,6 +26,8 @@ public:
 	unsigned int getMidFreeChunkCount();
 	unsigned int getFreeNullCount();
 	unsigned int getInvalidReturnCount();
+	unsigned int getFenceOverflowHitCount();
+	unsigned int getFenceUnderflowHitCount();
 
 	void setMallocCount(unsigned int count);
 	void setFreeCount(unsigned int count);
@@ -34,6 +38,8 @@ public:
 	void setMidFreeChunkCount(unsigned int count);
 	void setFreeNullCount(unsigned int count);
 	void setInvalidReturnCount(unsigned int count);
+	void setFenceOverflowHitCount(unsigned int count);
+	void setFenceUnderflowHitCount(unsigned int count);
 
 	void incMallocCount();
 	void incFreeCount();
@@ -44,6 +50,8 @@ public:
 	void incMidFreeChunkCount();
 	void incFreeNullCount();
 	void incInvalidReturnCount();
+	void incFenceOverflowHitCount();
+	void incFenceUnderflowHitCount();
 
 	void reset();
 
