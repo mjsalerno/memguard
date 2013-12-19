@@ -136,7 +136,9 @@ void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 	}
 }
 ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
-{
+{	
+	//Save the address where the matching ret instruction should go
+	addrStack.push(nextip);
     //*rsp = EmuPushValue(*rsp, nextip);
     
     ADDRINT rspVal = *rsp;
@@ -150,19 +152,33 @@ ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
     return tgtip;
 }
 
-ADDRINT EmuRet(ADDRINT *rsp, UINT32 framesize)
+ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 {
     ADDRINT retval;
-
-    //*rsp = EmuPopMem(*rsp, &retval);
 
     ADDRINT rspVal = *rsp;
     ADDRINT *psp = (ADDRINT *)rspVal;
     retval = *psp;
     *rsp = rspVal + sizeof(ADDRINT);
     
-
     *rsp += framesize;
+
+	// Check the return address to make sure it is the one we saved
+	if (addrStack.empty()) {
+		RecordAddrSource(ip, "TOO MANY RETURNS");
+		stats.incInvalidReturnCount();
+		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
+	} else {
+		ADDRINT originval = addrStack.top();
+		addrStack.pop();
+		if (originval != retval) {
+			char errstr[128];
+			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retval);
+			RecordAddrSource(ip, (string)errstr);
+			stats.incInvalidReturnCount();
+			fprintf(trace, "ERROR: %s\n", errstr);
+		}
+	}
     return retval;
 }
 
@@ -190,6 +206,7 @@ void Instruction(INS ins, void *v) {
         INS_InsertCall(ins, IPOINT_BEFORE,
             AFUNPTR(EmuRet),
             IARG_CALL_ORDER, CALL_ORDER_FIRST,
+			IARG_INST_PTR,
             IARG_REG_REFERENCE, REG_STACK_PTR,
             IARG_ADDRINT, (ADDRINT)imm,
             IARG_RETURN_REGS, scratchReg, IARG_END);
