@@ -7,6 +7,7 @@ FILE * trace;
 MemList ml;
 Stats stats;
 stack<ADDRINT> addrStack;
+static REG scratchReg;
 
 /**
  * Checks and marks bad memory reads to any heap memory
@@ -134,6 +135,36 @@ void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 		}
 	}
 }
+ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
+{
+    //*rsp = EmuPushValue(*rsp, nextip);
+    
+    ADDRINT rspVal = *rsp;
+    
+    rspVal = rspVal - sizeof(ADDRINT);
+    ADDRINT *psp = (ADDRINT *)rspVal;
+    *psp = nextip;
+    *rsp = rspVal;
+
+
+    return tgtip;
+}
+
+ADDRINT EmuRet(ADDRINT *rsp, UINT32 framesize)
+{
+    ADDRINT retval;
+
+    //*rsp = EmuPopMem(*rsp, &retval);
+
+    ADDRINT rspVal = *rsp;
+    ADDRINT *psp = (ADDRINT *)rspVal;
+    retval = *psp;
+    *rsp = rspVal + sizeof(ADDRINT);
+    
+
+    *rsp += framesize;
+    return retval;
+}
 
 /**
  * Is called for every instruction and instruments reads and writes
@@ -141,24 +172,32 @@ void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 void Instruction(INS ins, void *v) {
 	// RETURN ADDRESS DEFENDER
 	if (INS_IsCall(ins)) {
-		if (INS_IsDirectCall(ins)) {
-			INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(RecordCallIns),
-				IARG_ADDRINT, INS_NextAddress(ins),
-				IARG_ADDRINT, INS_DirectBranchOrCallTargetAddress(ins),
-				IARG_END);
-		} else {
-			INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(RecordCallIns),
-				IARG_ADDRINT, INS_NextAddress(ins),
-				IARG_BRANCH_TARGET_ADDR,
-				IARG_END);
-		}
-	} else if (INS_IsRet(ins)) {
-		INS_InsertCall(ins, IPOINT_BEFORE,
-			AFUNPTR(RecordReturnIns),
-			IARG_INST_PTR,
-			IARG_RETURN_IP,
-			IARG_END);
-	}
+        INS_InsertCall(ins, IPOINT_BEFORE,
+            AFUNPTR(EmuCall),
+            IARG_ADDRINT, INS_NextAddress(ins),
+            IARG_BRANCH_TARGET_ADDR,
+            IARG_REG_REFERENCE, REG_STACK_PTR,
+            IARG_RETURN_REGS, scratchReg, IARG_END);
+
+        INS_InsertIndirectJump(ins, IPOINT_AFTER, scratchReg);
+
+        INS_Delete(ins);
+    } else if (INS_IsRet(ins)) {
+        UINT64 imm = 0;
+        if (INS_OperandCount(ins) > 0 && INS_OperandIsImmediate(ins, 0)) {
+            imm = INS_OperandImmediate(ins, 0);
+        }
+        INS_InsertCall(ins, IPOINT_BEFORE,
+            AFUNPTR(EmuRet),
+            IARG_CALL_ORDER, CALL_ORDER_FIRST,
+            IARG_REG_REFERENCE, REG_STACK_PTR,
+            IARG_ADDRINT, (ADDRINT)imm,
+            IARG_RETURN_REGS, scratchReg, IARG_END);
+
+        INS_InsertIndirectJump(ins, IPOINT_AFTER, scratchReg);
+
+        INS_Delete(ins);
+    }
     // Instruments memory accesses using a predicated call, i.e.
     // the instrumentation is called iff the instruction will actually be executed.
     //
@@ -512,6 +551,12 @@ int main(INT32 argc, CHAR *argv[]) {
     // Initialize pin
     if (PIN_Init(argc, argv)) 
         return Usage();
+	// Register used for 	   
+	scratchReg = PIN_ClaimToolRegister();
+    if (!REG_valid(scratchReg)) {
+        fprintf (stderr, "Cannot allocate a scratch register.\n");
+        return 1;
+    }
     // Open up the trace file
     trace = fopen(OUTPUT_LOG, "w");
     // Register ImageLoad to be called when an image is loaded
