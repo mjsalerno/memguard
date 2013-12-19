@@ -163,20 +163,27 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 		fp = stdin;
 	}
 	// Print out the initial object
-	fprintf(fp, "=== RESULTS ===\n");
+	fprintf(fp, "==================================\n");
+	fprintf(fp, "%-20s %s\n", "ACTIONS ", "COUNT");
+	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "allocations: ", this->mallocCount);
 	fprintf(fp, "%-20s %d\n", "deallocations: ", this->freeCount);
+	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid reads: ", this->invalidReadCount);
 	fprintf(fp, "%-20s %d\n", "invalid writes: ", this->invalidWriteCount);
+	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid frees: ", this->invalidFreeCount);
-	fprintf(fp, "%-20s %d\n", "null free: ", this->freeNullCount);
-	fprintf(fp, "%-20s %d\n", "midchunk free: ", this->midFreeChunkCount);
+	fprintf(fp, "%-20s %d\n", "    null free: ", this->freeNullCount);
+	fprintf(fp, "%-20s %d\n", "    midchunk free: ", this->midFreeChunkCount);
+	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "fence hit: ", this->fenceHitCount);
 	fprintf(fp, "%-20s %d\n", "    underflow: ", this->fenceUnderflowHitCount);
 	fprintf(fp, "%-20s %d\n", "    overflow: ", this->fenceOverflowHitCount);
+	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid returns: ", this->invalidReturnCount);
+	fprintf(fp, "==================================\n");
 	// Print out the contents of memlist if it was provided.
-	fprintf(fp, "=== MEMLIST CONTENTS ===\n");
+	fprintf(fp, "%-20s\n", "MEMLIST CONTENTS");
 	char buffer[2048];
 	int lostMemory = 0;
 	for(int i = 0; i < memlist.size(); i++) {
@@ -184,5 +191,8 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 		fprintf(fp, "%s\n", alloc.toString(buffer, 2048));
 		lostMemory += alloc.getTotalSize();
 	}
-	fprintf(fp, "The memlist contains %d items.\nTotal loss of %d bytes\n", memlist.size(), lostMemory);
+	fprintf(fp, "----------------------------------\n");
+	fprintf(fp, "%-20s %d\n", "list size: ", memlist.size());
+	fprintf(fp, "%-20s %d %s\n", "total loss: ", lostMemory, "bytes");
+	fprintf(fp, "==================================\n");
 }
