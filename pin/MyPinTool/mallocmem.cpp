@@ -82,7 +82,7 @@ VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
 }
 
 // see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html
-void RecordAddrSource(ADDRINT address, string message){
+void RecordAddrSource(ADDRINT address, string message) {
 	INT32 column = 0;   // column number within the file.
 	INT32 line = 0;     // line number within the file.
 	string filename;    // source file name.
@@ -92,7 +92,7 @@ void RecordAddrSource(ADDRINT address, string message){
 
     string rtnname = RTN_FindNameByAddress(address);
     // print only if source was found.
-    if (!filename.empty()){
+    if (!filename.empty()) {
 		cout << filename << ":" << dec << line << ":" << column << endl;
         cout << "Address: 0x" << hex << address << ": In function: ";
 		cout << "'" << rtnname << "': ";
@@ -119,24 +119,21 @@ VOID RecordStackMemWrite(VOID * ip, VOID * addr) {
 }
 
 
-VOID RecordCallIns(ADDRINT nextip)
-{
+VOID RecordCallIns(ADDRINT nextip) {
 	addrStack.push(nextip);
 	//cout << "Calling  : 0x" << hex << nextip << endl;
 }
 
-VOID RecordReturnIns(ADDRINT ip, ADDRINT retip)
-{
+VOID RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 	ADDRINT originval;
-	if(addrStack.empty()){
+	if (addrStack.empty()) {
 		RecordAddrSource(ip, "TOO MANY RETURNS");
 		stats.incInvalidReturnCount();
 		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
-	}
-	else {
+	} else {
 		originval = addrStack.top();
 		addrStack.pop();
-		if(originval != retip){
+		if (originval != retip) {
 			char errstr[128];
 			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retip);
 			RecordAddrSource(ip, (string)errstr);
@@ -147,13 +144,13 @@ VOID RecordReturnIns(ADDRINT ip, ADDRINT retip)
 	//cout << "Returning: 0x" << hex << retip << endl;
 }
 
-VOID SetInMain(void){
+VOID SetInMain(void) {
 	inMain = true;
     fprintf(trace, "Main execution started\n");
 }
 
 // Is called for every instruction and instruments reads and writes
-VOID Instruction(INS ins, VOID *v) {
+VOID Instruction(INS ins, VOID *v) {	
 	// RETURN ADDRESS DEFENDER
 	if (INS_IsCall(ins)) {
 		INS_InsertPredicatedCall(ins, IPOINT_BEFORE,
@@ -163,7 +160,7 @@ VOID Instruction(INS ins, VOID *v) {
 	} else if (INS_IsRet(ins)) {
 		INS_InsertPredicatedCall(ins, IPOINT_BEFORE,
 			AFUNPTR(RecordReturnIns),
-            IARG_INST_PTR,
+			IARG_INST_PTR,
 			IARG_RETURN_IP,
 			IARG_END);
 	}
@@ -363,8 +360,7 @@ void HookFree(IMG img) {
             IARG_PROTOTYPE, 
             proto,
             IARG_ORIG_FUNCPTR,
-            IARG_FUNCARG_ENTRYPOINT_VALUE, 
-            0, 
+            IARG_FUNCARG_ENTRYPOINT_VALUE, 0, 
             IARG_RETURN_IP,
             IARG_END);
         // Free the function prototype

@@ -70,27 +70,21 @@ VOID checkRet(ADDRINT retip)
 	}
 	OutFile << "Returning: 0x" << hex << retip << endl;
 }
-
+bool lastINS = false;
 // Pin calls this function every time a call instruction is encountered
 VOID Instruction(INS ins, VOID *v)
-{	
-	// Insert a call to docount before every call instruction, no arguments are passed
-	if (INS_IsCall(ins))
-	{	
-		INS_InsertCall(ins, IPOINT_BEFORE,
-			(AFUNPTR)docount,
-			IARG_END);
-		INS_InsertCall(ins, IPOINT_BEFORE,
-			AFUNPTR(saveCall),
-			IARG_ADDRINT, INS_NextAddress(ins),
-			IARG_END);
+{	if (lastINS) {
+		OutFile << "Address after return: 0x" << hex << INS_Address(ins) << endl;
+		lastINS = false;
 	}
-	else if (INS_IsRet(ins))
-	{
-		INS_InsertCall(ins, IPOINT_BEFORE,
-			AFUNPTR(checkRet),
-			IARG_RETURN_IP,
-			IARG_END);
+	// Insert a call to docount before every call instruction, no arguments are passed
+	if (INS_IsCall(ins)) {	
+		INS_InsertCall(ins, IPOINT_BEFORE, (AFUNPTR)docount,IARG_END);
+		INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(saveCall),
+			IARG_ADDRINT, INS_NextAddress(ins), IARG_END);		
+	} else if (INS_IsRet(ins)) {
+		INS_InsertCall(ins, IPOINT_BEFORE, AFUNPTR(checkRet),IARG_RETURN_IP,IARG_END);
+		lastINS = true;
 	}
 }
 
