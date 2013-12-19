@@ -214,7 +214,7 @@ void Fini(INT32 code, void *v) {
 void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
-    stats.incMallocCount();
+    stats.incAllocCount();
     MemoryAlloc ma = ml.add(v, arg0, DEFAULT_FENCE_SIZE);
     fprintf(trace, "ADDED: %p %d \n", v, DEFAULT_FENCE_SIZE);
     return ma.getAddress();
@@ -232,7 +232,7 @@ void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnI
     MemoryAlloc ma = ml.add(ptr, bytes, DEFAULT_FENCE_SIZE);
     // Add the information to the trace file
     fprintf(trace, "ADDED: %p %d \n", ptr, DEFAULT_FENCE_SIZE);
-    stats.incMallocCount();
+    stats.incAllocCount();
     return ma.getAddress();
 }
 
@@ -259,7 +259,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
 			stats.incFreeCount();
 			// Add MemoryAlloc for newptr
 			MemoryAlloc ma = ml.add(newptr, arg1, DEFAULT_FENCE_SIZE);
-			stats.incMallocCount();
+			stats.incAllocCount();
     		fprintf(trace, "REALLOCED: %p, TOTAL SIZE: %zu\n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
     		return ma.getAddress();           
         } else if(index == ERR_NOT_FOUND) {
@@ -283,7 +283,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
     } else {
         // arg0 == NULL so realloc acts as malloc(arg1)
 		void* newptr = orgFuncptr(arg0, arg1 + (2 * DEFAULT_FENCE_SIZE));
-		stats.incMallocCount();
+		stats.incAllocCount();
 		MemoryAlloc ma = ml.add(newptr, arg1, DEFAULT_FENCE_SIZE);
 		fprintf(trace, "ADDED: %p, TOTAL SIZE: %zu \n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
 		return ma.getAddress();
