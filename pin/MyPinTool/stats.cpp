@@ -238,12 +238,14 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "%-20s %d\n", "    malloc", this->mallocCount);
 	fprintf(fp, "%-20s %d\n", "    calloc", this->callocCount);
 	fprintf(fp, "%-20s %d\n", "    realloc", this->reallocCount);
+	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "deallocations: ", this->freeCount);
 	fprintf(fp, "%-20s %d\n", "    free ", this->freeCount);
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid reads: ", this->invalidReadCount);
 	fprintf(fp, "%-20s %d\n", "    underflow: ", this->readFenceUnderflow);
 	fprintf(fp, "%-20s %d\n", "    overflow: ", this->readFenceOverflow);
+	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid writes: ", this->invalidWriteCount);
 	fprintf(fp, "%-20s %d\n", "    underflow: ", this->writeFenceUnderflow);
 	fprintf(fp, "%-20s %d\n", "    overflow: ", this->writeFenceOverflow);
