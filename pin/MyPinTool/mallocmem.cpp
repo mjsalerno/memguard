@@ -311,6 +311,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             stats.incInvalidFreeCount();
             if(index == ERR_NOT_FOUND) {
                 fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
+                stats.incFreeNotFoundCount();
             } else if(index == ERR_MID_CHUNK) {
                 fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
                 stats.incMidFreeChunkCount();
