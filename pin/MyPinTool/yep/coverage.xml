@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <!DOCTYPE coverage
   SYSTEM 'http://cobertura.sourceforge.net/xml/coverage-03.dtd'>
-<coverage branch-rate="0.538670284939" line-rate="0.30233167409" timestamp="1387425645" version="gcovr 3.1">
+<coverage branch-rate="0.538670284939" line-rate="0.30233167409" timestamp="1387426974" version="gcovr 3.1">
 <sources>
 <source>.</source>
 </sources>
