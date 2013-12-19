@@ -5,6 +5,8 @@ int main(int argc, char const *argv[]) {
 	int j = 0;
 	char *ptr = NULL;        
 	char* cp1 = malloc(16);
+	char* misaligned = malloc(64);
+	misaligned+= 2;
 	*(cp1+9) = 'q';
     j++;
 	int i = 0;
@@ -27,11 +29,10 @@ int main(int argc, char const *argv[]) {
 	for(; i < 55; i++) {
 		cptr2[i] = 'r';
 	}
-	// free(cptr);
-	free(cptr2);
+	free(misaligned); // Free a misaligned pointer
+	free(cptr);
+	free(cptr2); // this pointer is the same as cptr 
 	free(cp1);
 	free(ptr);  // Free NULL
-	// Make a bad free
-	free(cptr2);
 	return 0;
 }
