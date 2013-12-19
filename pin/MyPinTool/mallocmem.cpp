@@ -494,6 +494,14 @@ INT32 Usage() {
     return -1;
 }
 
+/** 
+ * Sanity check that the tool isn't being run in threaded code.
+ */
+static VOID CheckThreadCount(THREADID threadIndex, CONTEXT *, INT32, VOID *)
+{
+    ASSERT (threadIndex==0, "This tool does not handle multiple threads\n");
+}
+
 /**
  * Main Function. 
  * Initializes pin, and starts the instrumented program.
@@ -510,6 +518,7 @@ int main(INT32 argc, CHAR *argv[]) {
     IMG_AddInstrumentFunction(ImageLoad, 0);
     INS_AddInstrumentFunction(Instruction, 0);
     PIN_AddFiniFunction(Fini, 0);
+	PIN_AddThreadStartFunction(CheckThreadCount, 0);
     PIN_StartProgram();
     return 0;
 }
