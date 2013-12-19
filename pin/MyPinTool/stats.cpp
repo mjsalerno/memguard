@@ -58,6 +58,10 @@ unsigned int Stats::getFreeNullCount() {
 	return this->freeNullCount;
 }
 
+unsigned int Stats::getFreeNotFoundCount() {
+	return this->freeNotFoundCount;
+}
+
 unsigned int Stats::getInvalidReturnCount() {
 	return this->invalidReturnCount;
 }
@@ -114,6 +118,10 @@ void Stats::setFenceUnderflowHitCount(unsigned int count) {
 	this->fenceUnderflowHitCount = count;
 }
 
+void Stats::setFreeNotFoundCount(unsigned int count) {
+	this->freeNotFoundCount = count;
+}
+
 void Stats::incMallocCount() {
 	this->mallocCount++;
 }
@@ -158,6 +166,10 @@ void Stats::incFenceUnderflowHitCount() {
 	this->fenceUnderflowHitCount++;
 }
 
+void Stats::incFreeNotFoundCount() {
+	this->freeNotFoundCount++;
+}
+
 void Stats::displayResults(MemList memlist, FILE *fp) {
 	if(fp == NULL) {
 		fp = stdin;
@@ -173,6 +185,7 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	fprintf(fp, "%-20s %d\n", "invalid writes: ", this->invalidWriteCount);
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "invalid frees: ", this->invalidFreeCount);
+	fprintf(fp, "%-20s %d\n", "    not found: ", this->freeNotFoundCount);
 	fprintf(fp, "%-20s %d\n", "    null free: ", this->freeNullCount);
 	fprintf(fp, "%-20s %d\n", "    midchunk free: ", this->midFreeChunkCount);
 	fprintf(fp, "----------------------------------\n");
