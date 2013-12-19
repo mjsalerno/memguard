@@ -17,15 +17,14 @@ void RecordHeapMemRead(ADDRINT ip, void* addr) {
     if(rtn == ERR_FENCE_UNDERFLOW || rtn == ERR_FENCE_OVERFLOW) {
         // General Counter
         stats.incInvalidReadCount();
-        stats.incFenceHitCount();
         switch(rtn) {
             case ERR_FENCE_UNDERFLOW:
-                stats.incFenceUnderflowHitCount();
+                stats.incReadFenceUnderflow();
                 fprintf(trace,"##########BAD READ - UNDERFLOW: %p \n", addr);
                 RecordAddrSource(ip, "BAD READ - UNDERFLOW");
                 break;
             case ERR_FENCE_OVERFLOW:
-                stats.incFenceOverflowHitCount();
+                stats.incReadFenceOverflow();
                 fprintf(trace,"##########BAD READ - OVERFLOW: %p \n", addr);
                 RecordAddrSource(ip, "BAD READ - OVERFLOW");
                 break;    
@@ -42,15 +41,14 @@ void RecordHeapMemWrite(ADDRINT ip, void* addr) {
     if(rtn == ERR_FENCE_UNDERFLOW || rtn == ERR_FENCE_OVERFLOW) {
         // General Counter
         stats.incInvalidWriteCount();
-        stats.incFenceHitCount();
         switch(rtn) {
             case ERR_FENCE_UNDERFLOW:
-                stats.incFenceUnderflowHitCount();
+                stats.incWriteFenceUnderflow();
                 fprintf(trace,"##########BAD WRITE - UNDERFLOW: %p \n", addr);
                 RecordAddrSource(ip, "BAD WRITE - UNDERFLOW");
                 break;
             case ERR_FENCE_OVERFLOW:
-                stats.incFenceOverflowHitCount();
+                stats.incWriteFenceOverflow();
                 fprintf(trace,"##########BAD WRITE - OVERFLOW: %p \n", addr);
                 RecordAddrSource(ip, "BAD WRITE - OVERFLOW");
                 break;    
@@ -214,6 +212,7 @@ void Fini(INT32 code, void *v) {
 void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
+    stats.incMallocCount();
     stats.incAllocCount();
     MemoryAlloc ma = ml.add(v, arg0, DEFAULT_FENCE_SIZE);
     fprintf(trace, "ADDED: %p %d \n", v, DEFAULT_FENCE_SIZE);
@@ -233,6 +232,7 @@ void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnI
     // Add the information to the trace file
     fprintf(trace, "ADDED: %p %d \n", ptr, DEFAULT_FENCE_SIZE);
     stats.incAllocCount();
+    stats.incCallocCount();
     return ma.getAddress();
 }
 
@@ -260,6 +260,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
 			// Add MemoryAlloc for newptr
 			MemoryAlloc ma = ml.add(newptr, arg1, DEFAULT_FENCE_SIZE);
 			stats.incAllocCount();
+            stats.incReallocCount();
     		fprintf(trace, "REALLOCED: %p, TOTAL SIZE: %zu\n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
     		return ma.getAddress();           
         } else if(index == ERR_NOT_FOUND) {
@@ -270,12 +271,12 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
 			stats.incMidFreeChunkCount();
         } else if(index == ERR_FENCE_UNDERFLOW) {
             fprintf(trace, "Memory Fence Hit in realloc - Underflow @ %p\n", arg0);
-            stats.incFenceHitCount();
-            stats.incFenceUnderflowHitCount();
+            // stats.incFenceHitCount();
+            // stats.incFenceUnderflowHitCount();
         } else if(index == ERR_FENCE_OVERFLOW) {
             fprintf(trace, "Memory Fence Hit in realloc - Overflow @ %p\n", arg0);
-            stats.incFenceHitCount();
-            stats.incFenceOverflowHitCount();
+            // stats.incFenceHitCount();
+            // stats.incFenceOverflowHitCount();
         } else {
             // This should Never happen...
             fprintf(trace, "index = %d : Unable to realloc the memory @ %p\n", index, arg0);
@@ -317,12 +318,12 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
                 stats.incMidFreeChunkCount();
             } else if(index == ERR_FENCE_UNDERFLOW) {
                 fprintf(trace, "Memory Fence Hit - Underflow @ %p\n", ptr);
-                stats.incFenceHitCount();
-                stats.incFenceUnderflowHitCount();
+                // stats.incFenceHitCount();
+                // stats.incFenceUnderflowHitCount();
             } else if(index == ERR_FENCE_OVERFLOW) {
                 fprintf(trace, "Memory Fence Hit - Overflow @ %p\n", ptr);
-                stats.incFenceHitCount();
-                stats.incFenceOverflowHitCount();
+                // stats.incFenceHitCount();
+                // stats.incFenceOverflowHitCount();
             } else {
                 // This should Never happen...
                 fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
