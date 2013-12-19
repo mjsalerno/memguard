@@ -231,7 +231,9 @@ void Fini(INT32 code, void *v) {
  */
 void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
 	// Pop the call for this function
-	//addrStack.pop();
+	if (!addrStack.empty()) {
+		addrStack.pop();
+	}
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
     stats.incMallocCount();
@@ -246,7 +248,9 @@ void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
  */
 void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnIp) {
 	// Pop the call for this function
-	//addrStack.pop();
+	if (!addrStack.empty()) {
+		addrStack.pop();
+	}
     // Calculate the size in bytes
     size_t bytes = (arg0 * arg1);
     size_t totalSize = bytes + (2 * DEFAULT_FENCE_SIZE);
@@ -265,7 +269,9 @@ void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnI
  */
 void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnIp) {
 	// Pop the call for this function
-	//addrStack.pop();
+	if (!addrStack.empty()) {
+		addrStack.pop();
+	}
 	// First, find MemoryAlloc of arg0
 	if(arg0 != NULL) {
         // Check the MemList
@@ -323,7 +329,9 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
  */
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
 	// Pop the call for this function
-	//addrStack.pop();
+	if (!addrStack.empty()) {
+		addrStack.pop();
+	}
     if(ptr != NULL) {
         // Check the MemList
         int index  = ml.containsAddress(ptr);
