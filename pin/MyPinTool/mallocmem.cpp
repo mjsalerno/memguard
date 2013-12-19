@@ -81,6 +81,10 @@ VOID RecordHeapMemWrite(ADDRINT ip, VOID * addr) {
     }    
 }
 
+#define BOLD_RED "\033[1m\033[31m"
+#define BOLD_WHITE "\033[1m\033[37m"
+#define RESET "\033[0m"
+
 // see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html
 void RecordAddrSource(ADDRINT address, string message) {
 	INT32 column = 0;   // column number within the file.
@@ -92,13 +96,13 @@ void RecordAddrSource(ADDRINT address, string message) {
 
     string rtnname = RTN_FindNameByAddress(address);
     // print only if source was found.
-    if (!filename.empty()) {
-		cout << filename << ":" << dec << line << ":" << column << endl;
-        cout << "Address: 0x" << hex << address << ": In function: ";
-		cout << "'" << rtnname << "': ";
+    if (!filename.empty()){
+		cout << BOLD_WHITE << filename << ":" << dec << line << ":" << column << RESET << endl;
+        cout << BOLD_WHITE << "Address: 0x" << hex << address << ": In function: ";
+		cout << "'" << rtnname << "': " << RESET;
 	}
 	// Print Error message
-	cout << "Error: " << message << endl << endl;
+	cout << BOLD_RED << "Error: " << BOLD_WHITE << message << RESET << endl << endl;
 }
 
 bool hasEnding (string const &fullString, string const &ending) {
