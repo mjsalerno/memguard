@@ -306,29 +306,32 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             // Remove the element from the list
             ml.removeMatching(alloc);
             stats.incFreeCount();
-        } else if(index == ERR_NOT_FOUND) {
-            // This currently gets hit since a blacklist is being used 
-            fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
-            stats.incInvalidFreeCount();
-        } else if(index == ERR_MID_CHUNK) {
-            fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
-            stats.incMidFreeChunkCount();
-        } else if(index == ERR_FENCE_UNDERFLOW) {
-            fprintf(trace, "Memory Fence Hit - Underflow @ %p\n", ptr);
-            stats.incFenceHitCount();
-            stats.incFenceUnderflowHitCount();
-        } else if(index == ERR_FENCE_OVERFLOW) {
-            fprintf(trace, "Memory Fence Hit - Overflow @ %p\n", ptr);
-            stats.incFenceHitCount();
-            stats.incFenceOverflowHitCount();
         } else {
-            // This should Never happen...
-            fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
+            // Track the Invalid Free and the type of invalid free
+            stats.incInvalidFreeCount();
+            if(index == ERR_NOT_FOUND) {
+                fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
+            } else if(index == ERR_MID_CHUNK) {
+                fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
+                stats.incMidFreeChunkCount();
+            } else if(index == ERR_FENCE_UNDERFLOW) {
+                fprintf(trace, "Memory Fence Hit - Underflow @ %p\n", ptr);
+                stats.incFenceHitCount();
+                stats.incFenceUnderflowHitCount();
+            } else if(index == ERR_FENCE_OVERFLOW) {
+                fprintf(trace, "Memory Fence Hit - Overflow @ %p\n", ptr);
+                stats.incFenceHitCount();
+                stats.incFenceOverflowHitCount();
+            } else {
+                // This should Never happen...
+                fprintf(trace, "index = %d : Unable to deallocate the memory @ %p\n", index, ptr);
+            }
         }
     } else {
         fprintf(trace, "Attempted to free NULL\n");
+        stats.incInvalidFreeCount();
         stats.incFreeNullCount();
-    }
+    } 
 }
 
 /**
