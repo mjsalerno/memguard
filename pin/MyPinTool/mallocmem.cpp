@@ -313,16 +313,20 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
             stats.incInvalidFreeCount();
             if(index == ERR_NOT_FOUND) {
                 fprintf(trace, "Address = %p not found. Bad address or stack address used.\n", ptr);
+                RecordAddrSource(returnIp - 4, "INVALID FREE - ERR_NOT_FOUND");
                 stats.incFreeNotFoundCount();
             } else if(index == ERR_MID_CHUNK) {
                 fprintf(trace, "Mid-chunk memory deallocation @ %p\n", ptr);
+                RecordAddrSource(returnIp - 4, "INVALID FREE - ERR_MID_CHUNK");
                 stats.incMidFreeChunkCount();
             } else if(index == ERR_FENCE_UNDERFLOW) {
                 fprintf(trace, "Memory Fence Hit - Underflow @ %p\n", ptr);
+                RecordAddrSource(returnIp - 4, "INVALID FREE - ERR_FENCE_UNDERFLOW");
                 // stats.incFenceHitCount();
                 // stats.incFenceUnderflowHitCount();
             } else if(index == ERR_FENCE_OVERFLOW) {
                 fprintf(trace, "Memory Fence Hit - Overflow @ %p\n", ptr);
+                RecordAddrSource(returnIp - 4, "INVALID FREE - ERR_FENCE_OVERFLOW");
                 // stats.incFenceHitCount();
                 // stats.incFenceOverflowHitCount();
             } else {
@@ -332,6 +336,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
         }
     } else {
         fprintf(trace, "Attempted to free NULL\n");
+        RecordAddrSource(returnIp - 4, "INVALID FREE - NULL FREE");
         stats.incInvalidFreeCount();
         stats.incFreeNullCount();
     } 
