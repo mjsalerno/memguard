@@ -31,5 +31,7 @@ int main(int argc, char const *argv[]) {
 	free(cptr2);
 	free(cp1);
 	free(ptr);  // Free NULL
+	// Make a bad free
+	free(cptr2);
 	return 0;
 }
