@@ -2,7 +2,7 @@
 if test "$1" = "clean"  ; then
 	make PIN_ROOT=pintool clean
 	rm -f test sample stacksmash control
-else
+elif test -z "$1" ; then
 	# Just ignore the flag and do the normal build 
 	make PIN_ROOT=pintool
 	# Check to see if pin was successful
@@ -47,5 +47,20 @@ else
 	cat stats.log >> stacksmash.log
 	
 	echo -e "\n### Running memory check detection test on ./test ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./test	
+	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./test
+
+else
+	make PIN_ROOT=pintool
+	# Check to see if pin was successful
+	if [[ $? -ne 0 ]]; then
+		echo "pintool make failed."
+		exit 1
+	fi
+	# Check for 32 or 64 bit system 
+	if [ -d "obj-intel64" ] ; then
+		OBJDIR="obj-intel64"
+	else
+		OBJDIR="obj-ia32"
+	fi 
+	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- $1	
 fi
