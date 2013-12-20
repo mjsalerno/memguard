@@ -77,7 +77,11 @@ void RecordAddrSource(ADDRINT address, string message) {
 		cout << BOLD << filename << ":" << dec << line << ":" << column << RESET << endl;
         cout << BOLD << "Address: 0x" << hex << address << ": In function: ";
 		cout << "'" << rtnname << "': " << RESET;
-	}
+	} else {
+        // Print out a message 
+        cout << BOLD << "Unable to locate source file. The error is either located in a system library or the "
+        << "binary was not compiled using -g." << RESET << endl;
+    }
 	// Print Error message
 	cout << BOLD_RED << "Error: " << BOLD << message << RESET << endl << endl;
 }
