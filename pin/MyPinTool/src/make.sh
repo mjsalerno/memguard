@@ -17,6 +17,12 @@ else
 		echo "test program failed to compile."
 		exit 1
 	fi
+	# compile the stack smashing example
+	gcc -g samples/sample.c -o sample
+	if [[ $? -ne 0 ]]; then
+		echo "sample program failed to compile."
+		exit 1
+	fi
 	# Check for 32 or 64 bit system 
 	if [ -d "obj-intel64" ] ; then
 		OBJDIR="obj-intel64"

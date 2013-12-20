@@ -9,9 +9,9 @@
 #include <set>
 #include <stack>
 /* Utility Class Headers */
-#include "util/memlist.h"
-#include "util/memoryalloc.h"
-#include "util/stats.h"
+#include "memlist.h"
+#include "memoryalloc.h"
+#include "stats.h"
 /* Define colors used for our error print statements */
 #define BOLD_RED "\033[1m\033[31m"
 #define BOLD_WHITE "\033[1m\033[37m"
