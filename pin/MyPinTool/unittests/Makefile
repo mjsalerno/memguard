@@ -42,8 +42,6 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 all : setup $(TESTS)
 
 test : all
-	cp ../src/*.cpp .
-	cp ../src/*.h .
 	for tst in $(TESTS) ; do \
     	./$$tst  --gtest_output=xml:$$tst.coverage.junit.xml; \
 	done
