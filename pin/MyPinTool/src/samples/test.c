@@ -36,6 +36,8 @@ int main(int argc, char const *argv[]) {
 	for(; i < 55; i++) {
 		cptr2[i] = 'r';
 	}
+	// Make an error come up for printf
+	printf("%c\n", cptr2[55]);
 	// Free lots of stuff
 	free(misaligned); // Free a misaligned pointer
 	free(cptr);
