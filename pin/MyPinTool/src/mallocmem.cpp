@@ -7,6 +7,7 @@ FILE * trace;
 MemList ml;
 Stats stats;
 stack<ADDRINT> addrStack;
+stack<ADDRINT *> addrOfReturnStack;
 static REG scratchReg;
 static bool forceNoRAD = false;
 
@@ -146,6 +147,7 @@ ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
     
     rspVal = rspVal - sizeof(ADDRINT);
     ADDRINT *psp = (ADDRINT *)rspVal;
+	addrOfReturnStack.push(psp);
     *psp = nextip;
     *rsp = rspVal;
 
@@ -155,11 +157,11 @@ ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
 
 ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 {
-    ADDRINT retval;
+    ADDRINT retval = 1;
 
     ADDRINT rspVal = *rsp;
-    ADDRINT *psp = (ADDRINT *)rspVal;
-    retval = *psp;
+    //ADDRINT *psp = (ADDRINT *)rspVal;
+    //retval = *psp;
     *rsp = rspVal + sizeof(ADDRINT);
     
     *rsp += framesize;
@@ -171,7 +173,15 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
 	} else {
 		ADDRINT originval = addrStack.top();
+		ADDRINT *ptrtoRA = addrOfReturnStack.top();
+		// if (ptrtoRA != psp)
+			// cout << "NOT EQUALS" << endl;
+		// else
+			// cout << "EQUALS" << endl;
 		addrStack.pop();
+		addrOfReturnStack.pop();
+		
+		retval = *ptrtoRA;
 		if (originval != retval) {
 			char errstr[128];
 			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retval);
@@ -180,6 +190,7 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 			fprintf(trace, "ERROR: %s\n", errstr);
 		}
 	}
+	cout << "*rsp = " << hex << *rsp << "retip = " << hex << retval << endl;
     return retval;
 }
 
@@ -270,18 +281,20 @@ void Fini(INT32 code, void *v) {
     fprintf(trace, "#eof \n");
     // Display the stats
     stats.displayResults(ml, trace);
-	//print the return address stack
-	fprintf(trace, "TOP Address Stack:\n");
-	while (!addrStack.empty()) {
-		ADDRINT leftover = addrStack.top();
-		fprintf(trace, "%p\n", (void *)leftover);
-		IMG img = IMG_FindByAddress(leftover);
-		if (IMG_Valid(img)) {
-			cout << IMG_Name(img) << endl;
+	if (!forceNoRAD) {
+		//print the return address stack
+		fprintf(trace, "TOP Address Stack:\n");
+		while (!addrStack.empty()) {
+			ADDRINT leftover = addrStack.top();
+			fprintf(trace, "%p\n", (void *)leftover);
+			IMG img = IMG_FindByAddress(leftover);
+			if (IMG_Valid(img)) {
+				cout << IMG_Name(img) << endl;
+			}
+			addrStack.pop();
 		}
-		addrStack.pop();
+		fprintf(trace, "BOTTOM Address Stack:\n");
 	}
-	fprintf(trace, "BOTTOM Address Stack:\n");
     fclose(trace);
 }
 
@@ -292,6 +305,7 @@ void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
 	// Pop the call for this function
 	if (!addrStack.empty()) {
 		addrStack.pop();
+		addrOfReturnStack.pop();
 	}
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
@@ -579,7 +593,7 @@ int main(INT32 argc, CHAR *argv[]) {
     }
 	// Check if we're running 32 or 64
 	if (sizeof(size_t) != 8) {
-		forceNoRAD = true;
+		//forceNoRAD = true;
 		fprintf (stderr, "Disabling return address defender: does not yet work on 32 bit machines.\n");
 	}
     // Open up the trace file
