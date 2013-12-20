@@ -40,6 +40,13 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 
 all : $(TESTS)
 
+test : all
+	for tst in $(TESTS) ; do \
+    	./$$tst ; \
+	done
+	./gcovr -x -r . -e "gtest" -e "sample1_unittest.cc" -o coverage.xml
+	./gcovr -r . --html --html-details -e "gtest" -e "sample1_unittest.cc" -o "thing.html"
+
 clean :
 	rm -f $(TESTS) gtest.a gtest_main.a *.o *.gcda *.gcno *.xml *.html
 
