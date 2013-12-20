@@ -30,6 +30,7 @@ utest
 pintool
 test
 stacksmash
+control
 gtest
 *.log
 *.gcda
