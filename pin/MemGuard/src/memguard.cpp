@@ -1,4 +1,4 @@
-#include "mallocmem.h"
+#include "memguard.h"
 /* Import the std namespace for libc++ namespace */
 using namespace std;
 
@@ -79,8 +79,8 @@ void RecordAddrSource(ADDRINT address, string message) {
 		cout << "'" << rtnname << "': " << RESET;
 	} else {
         // Print out a message 
-        cout << BOLD << "Unable to locate source file. The error is either located in a system library or the "
-        << "binary was not compiled using -g." << RESET << endl;
+        cout << BOLD << "Address: 0x" << hex << address << ": In function: ";
+        cout << "'" << rtnname << "': " << RESET;
     }
 	// Print Error message
 	cout << BOLD_RED << "Error: " << BOLD << message << RESET << endl << endl;
@@ -397,6 +397,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
         // arg0 == NULL so realloc acts as malloc(arg1)
 		void* newptr = orgFuncptr(arg0, arg1 + (2 * DEFAULT_FENCE_SIZE));
 		stats.incAllocCount();
+        stats.incReallocCount();
 		MemoryAlloc ma = ml.add(newptr, arg1, DEFAULT_FENCE_SIZE);
 		fprintf(trace, "ADDED: %p, TOTAL SIZE: %zu \n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
 		return ma.getAddress();

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 if test "$1" = "clean"  ; then
 	make PIN_ROOT=pintool clean
-	rm -f test sample
+	rm -f test sample stacksmash
 else
 	# Just ignore the flag and do the normal build 
 	make PIN_ROOT=pintool
@@ -31,9 +31,9 @@ else
 	fi
 	# Run Pin
 	echo -e "\n### Running stack smashing detection test on ./stacksmash ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/mallocmem.so -- ./stacksmash
+	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./stacksmash
 	echo -e "\n### Appending stats.log ###\n" > stacksmash.log
 	cat stats.log >> stacksmash.log
 	echo -e "\n### Running memory check detection test on ./test ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/mallocmem.so -- ./test	
+	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./test	
 fi

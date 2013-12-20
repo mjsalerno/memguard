@@ -264,7 +264,7 @@ void Stats::displayResults(MemList memlist, FILE *fp) {
 	for(int i = 0; i < memlist.size(); i++) {
 		MemoryAlloc alloc = memlist.get(i); 
 		fprintf(fp, "%s\n", alloc.toString(buffer, 2048));
-		lostMemory += alloc.getTotalSize();
+		lostMemory += alloc.getUserSize();
 	}
 	fprintf(fp, "----------------------------------\n");
 	fprintf(fp, "%-20s %d\n", "list size: ", memlist.size());

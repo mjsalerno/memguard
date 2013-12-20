@@ -17,8 +17,8 @@
 # This defines tests which run tools of the same name.  This is simply for convenience to avoid
 # defining the test name twice (once in TOOL_ROOTS and again in TEST_ROOTS).
 # Tests defined here should not be defined in TOOL_ROOTS and TEST_ROOTS.
-#TEST_TOOL_ROOTS := MyPinTool mallocmem
-TEST_TOOL_ROOTS := mallocmem
+#TEST_TOOL_ROOTS := MemGuard memguard
+TEST_TOOL_ROOTS := memguard
 
 # This defines the tests to be run that were not already defined in TEST_TOOL_ROOTS.
 TEST_ROOTS :=test
@@ -45,7 +45,7 @@ SA_TOOL_ROOTS :=
 APP_ROOTS :=
 
 # This defines any additional object files that need to be compiled.
-OBJECT_ROOTS := mallocmem memoryalloc memlist
+OBJECT_ROOTS := memguard memoryalloc memlist
 
 # This defines any additional dlls (shared objects), other than the pintools, that need to be compiled.
 DLL_ROOTS :=
@@ -73,6 +73,6 @@ LIB_ROOTS :=
 # This section contains the build rules for all binaries that have special build rules.
 # See makefile.default.rules for the default build rules.
 
-$(OBJDIR)mallocmem$(PINTOOL_SUFFIX): $(OBJDIR)mallocmem$(OBJ_SUFFIX) $(OBJDIR)memlist$(OBJ_SUFFIX) $(OBJDIR)memoryalloc$(OBJ_SUFFIX) $(OBJDIR)stats$(OBJ_SUFFIX)
+$(OBJDIR)memguard$(PINTOOL_SUFFIX): $(OBJDIR)memguard$(OBJ_SUFFIX) $(OBJDIR)memlist$(OBJ_SUFFIX) $(OBJDIR)memoryalloc$(OBJ_SUFFIX) $(OBJDIR)stats$(OBJ_SUFFIX)
 	$(LINKER) $(TOOL_LDFLAGS) $(LINK_EXE)$@ $^ $(TOOL_LPATHS) $(TOOL_LIBS)
 
