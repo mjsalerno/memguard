@@ -27,7 +27,7 @@ sample2
 hw
 utest
 
-/pin/MyPinTool/pin
+pin-tool
 test
 gtest
 *.log
