@@ -183,11 +183,14 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 		
 		//retval = *ptrtoRA;
 		if (originval != retval) {
-			char errstr[128];
-			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retval);
+			char errstr[256];
+			snprintf(errstr, 256, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p\n FORCING return to %p\n", (void *)originval, (void *)retval, (void *)originval);
 			RecordAddrSource(ip, (string)errstr);
 			stats.incInvalidReturnCount();
 			fprintf(trace, "ERROR: %s\n", errstr);
+
+			//Force the return to the original location
+			retval = originval;
 		}
 	}
 	//cout << "*rsp = " << hex << *rsp << " retip = " << hex << retval << endl;

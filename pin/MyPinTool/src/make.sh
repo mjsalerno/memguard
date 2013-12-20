@@ -18,9 +18,9 @@ else
 		exit 1
 	fi
 	# compile the stack smashing example
-	gcc -g samples/sample.c -o sample
+	gcc -g -fno-stack-protector samples/stacksmash.c -o stacksmash
 	if [[ $? -ne 0 ]]; then
-		echo "sample program failed to compile."
+		echo "stacksmash program failed to compile."
 		exit 1
 	fi
 	# Check for 32 or 64 bit system 
@@ -30,5 +30,10 @@ else
 		OBJDIR="obj-ia32"
 	fi
 	# Run Pin
+	echo -e "\n### Running stack smashing detection test on ./stacksmash ###\n"
+	./pintool/pin.sh -t "$OBJDIR"/mallocmem.so -- ./stacksmash password1234_123
+	echo -e "\n### Appending stats.log ###\n" > stacksmash.log
+	cat stats.log >> stacksmash.log
+	echo -e "\n### Running memory check detection test on ./test ###\n"
 	./pintool/pin.sh -t "$OBJDIR"/mallocmem.so -- ./test	
 fi
