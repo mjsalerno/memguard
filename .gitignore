@@ -29,6 +29,7 @@ utest
 
 pintool
 test
+stacksmash
 gtest
 *.log
 *.gcda
