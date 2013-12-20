@@ -30,5 +30,5 @@ else
 		OBJDIR="obj-ia32"
 	fi
 	# Run Pin
-	./pintool/pin -t "$OBJDIR"/mallocmem.so -- ./test	
+	./pintool/pin.sh -t "$OBJDIR"/mallocmem.so -- ./test	
 fi
