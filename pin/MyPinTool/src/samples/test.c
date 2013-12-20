@@ -27,13 +27,16 @@ int main(int argc, char const *argv[]) {
 	}
 	// // Underflow write
 	cptr[-1] = 'p';
-	// // Underflow Read
+	// Underflow Read
 	char p = cptr[-1];
+	// overflow Read
+	p = cptr[55];
 	// Use realloc, might return NULL
 	char* cptr2 = realloc(cptr, (55 * sizeof(char)));
 	for(; i < 55; i++) {
 		cptr2[i] = 'r';
 	}
+	// Free lots of stuff
 	free(misaligned); // Free a misaligned pointer
 	free(cptr);
 	free(cptr2); // this pointer is the same as cptr 
