@@ -4,11 +4,11 @@
 
 //gcc -fno-stack-protector mybadprgm.c 
 
-int checkPasswd(char *passwd) {
+int checkPasswd() {
 	int isRight = 0;
 	char passBuff[4];
 
-	strcpy(passBuff, passwd);
+	strcpy(passBuff, "overwrite the ret");
 
 	if (strcmp(passBuff, "p") == 0)
 		isRight = 1;	
@@ -18,13 +18,8 @@ int checkPasswd(char *passwd) {
 }
 
 int main(int argc, char *argv[]) {
-	
-	if(argc < 2) {
-		printf("you forgot passwd\n");
-		exit(1);
-	}
 
-	if(checkPasswd(argv[1]))
+	if(checkPasswd())
 		printf("correct\n");
 	else
 		printf("wrong\n");

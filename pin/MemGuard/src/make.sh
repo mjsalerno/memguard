@@ -42,7 +42,7 @@ else
 	cat stats.log >> control.log
 
 	echo -e "\n### Running stack smashing detection test on ./stacksmash ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./stacksmash password1234_123
+	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./stacksmash
 	echo -e "\n### Appending stacksmash.log ###\n" > stacksmash.log
 	cat stats.log >> stacksmash.log
 	
