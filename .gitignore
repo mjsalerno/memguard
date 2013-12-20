@@ -35,6 +35,7 @@ gtest
 *.gcno
 *.xml
 *.html
+*unittest
 
 #NetBeans stuff
 nbproject/private/
