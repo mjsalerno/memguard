@@ -66,6 +66,13 @@ TEST(MemList, All) {
 	ASSERT_TRUE(!mlist.isEmpty());
 	mlist.clear();
 	ASSERT_TRUE(mlist.isEmpty());
+	// Perform some tests to hit certain branches in the code (and increase coverage :D)
+	bool failed = mlist.remove(1024);
+	ASSERT_TRUE(!failed);
+	MemoryAlloc f = mlist.get(1024); // this function does not return a pointer ....
+	// ASSERT_TRUE();
+	failed = mlist.removeMatching(NULL);
+	ASSERT_TRUE(!failed);
 	// Free allocated memory
 	free(s1);
 	free(s2);
