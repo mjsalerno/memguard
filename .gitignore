@@ -27,7 +27,7 @@ sample2
 hw
 utest
 
-pin-tool
+pintool
 test
 gtest
 *.log
