@@ -46,7 +46,7 @@ test : all
     	./$$tst  --gtest_output=xml:$$tst.coverage.junit.xml; \
 	done
 	./gcovr -x -r . -e "gtest" -e ".*_unittest.cpp" -e ".*\.h" -o coverage.xml
-	./gcovr -r . --html --html-details -e "gtest" -e ".*_unittest.cpp" -e ".*\.h" -o "thing.html"
+	./gcovr -r . --html --html-details -e "gtest" -e ".*_unittest.cpp" -e ".*\.h" -o "results.html"
 
 setup :
 	cp ../src/*.cpp .

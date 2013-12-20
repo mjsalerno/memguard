@@ -15,6 +15,11 @@ int main(int argc, char const *argv[]) {
 	for (i = 0; i < 18; ++i) {
         cp1[i] = 'q'; // Overflow write
 	}
+
+	for (i = 15; i > -1; --i) {
+        cp1[i] = 'q'; // underflow write
+	}
+
 	// Use calloc
 	char* cptr = calloc(50, sizeof(char));
 	for(i = 0; i < 50; i++) {
