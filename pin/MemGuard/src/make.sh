@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 if test "$1" = "clean"  ; then
 	make PIN_ROOT=pintool clean
-	rm -f test sample
+	rm -f test sample stacksmash
 else
 	# Just ignore the flag and do the normal build 
 	make PIN_ROOT=pintool
