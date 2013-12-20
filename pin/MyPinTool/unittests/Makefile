@@ -17,7 +17,7 @@
 GTEST_DIR = gtest
 
 # Where to find user code.
-PRG_SRC_DIR = ../src
+PRG_SRC_DIR = .
 TEST_SRC_DIR = src
 
 # Flags passed to the preprocessor.
@@ -39,17 +39,23 @@ GTEST_HEADERS = $(GTEST_DIR)/include/gtest/*.h \
 
 # House-keeping build targets.
 
-all : $(TESTS)
+all : setup $(TESTS)
 
 test : all
+	cp ../src/*.cpp .
+	cp ../src/*.h .
 	for tst in $(TESTS) ; do \
     	./$$tst  --gtest_output=xml:$$tst.coverage.junit.xml; \
 	done
 	./gcovr -x -r . -e "gtest" -e ".*_unittest.cpp" -e ".*\.h" -o coverage.xml
 	./gcovr -r . --html --html-details -e "gtest" -e ".*_unittest.cpp" -e ".*\.h" -o "thing.html"
 
+setup :
+	cp ../src/*.cpp .
+	cp ../src/*.h .
+
 clean :
-	rm -f $(TESTS) gtest.a gtest_main.a *.o *.gcda *.gcno *.xml *.html
+	rm -f $(TESTS) *.cpp *.h gtest.a gtest_main.a *.o *.gcda *.gcno *.xml *.html
 
 # Builds gtest.a and gtest_main.a.
 
