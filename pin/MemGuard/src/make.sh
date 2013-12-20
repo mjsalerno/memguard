@@ -31,9 +31,9 @@ else
 	fi
 	# Run Pin
 	echo -e "\n### Running stack smashing detection test on ./stacksmash ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/mallocmem.so -- ./stacksmash password1234_123
+	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./stacksmash password1234_123
 	echo -e "\n### Appending stats.log ###\n" > stacksmash.log
 	cat stats.log >> stacksmash.log
 	echo -e "\n### Running memory check detection test on ./test ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/mallocmem.so -- ./test	
+	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./test	
 fi
