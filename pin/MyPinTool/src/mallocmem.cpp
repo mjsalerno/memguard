@@ -593,7 +593,7 @@ int main(INT32 argc, CHAR *argv[]) {
     }
 	// Check if we're running 32 or 64
 	if (sizeof(size_t) != 8) {
-		//forceNoRAD = true;
+		forceNoRAD = true;
 		fprintf (stderr, "Disabling return address defender: does not yet work on 32 bit machines.\n");
 	}
     // Open up the trace file
