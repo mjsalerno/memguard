@@ -34,9 +34,9 @@ TEST(MemList, All) {
 	index = mlist.containsAddress((void*)((char*)ma1.getAddress() + 1));
 	ASSERT_TRUE(index == ERR_MID_CHUNK);
 	index = mlist.containsAddress(s1); // Check the underflow fence check
-	ASSERT_TRUE(index == ERR_IN_FENCE);
+	ASSERT_TRUE(index == ERR_FENCE_UNDERFLOW);
 	index = mlist.containsAddress((char*)ma1.getAddress() + ma1.getUserSize()); // Check the overflow fence check
-	ASSERT_TRUE(index == ERR_IN_FENCE);
+	ASSERT_TRUE(index == ERR_FENCE_OVERFLOW);
 	// Check the get function
 	index = mlist.containsAddress(ma1.getAddress());
 	MemoryAlloc g = mlist.get(index); 
