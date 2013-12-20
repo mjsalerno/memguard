@@ -397,6 +397,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
         // arg0 == NULL so realloc acts as malloc(arg1)
 		void* newptr = orgFuncptr(arg0, arg1 + (2 * DEFAULT_FENCE_SIZE));
 		stats.incAllocCount();
+        stats.incReallocCount();
 		MemoryAlloc ma = ml.add(newptr, arg1, DEFAULT_FENCE_SIZE);
 		fprintf(trace, "ADDED: %p, TOTAL SIZE: %zu \n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
 		return ma.getAddress();
