@@ -8,6 +8,10 @@ MemList ml;
 Stats stats;
 stack<ADDRINT> addrStack;
 static REG scratchReg;
+static ADDRINT mainAddress;
+static ADDRINT mainReturnAddress;
+// RAD is enabled once main is called
+static bool radEnabled = false;
 static bool forceNoRAD = false;
 
 /**
@@ -136,25 +140,28 @@ void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 		}
 	}
 }
-ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
-{	
+ADDRINT EmuCall(ADDRINT nextip, ADDRINT target, ADDRINT *rsp) {	
+	if (!radEnabled) {
+		if (mainAddress == target) {
+			radEnabled = true;
+			mainReturnAddress = nextip;
+		}
+	}
 	//Save the address where the matching ret instruction should go
-	addrStack.push(nextip);
-    //*rsp = EmuPushValue(*rsp, nextip);
-    
-    ADDRINT rspVal = *rsp;
-    
+	if (radEnabled) {
+		addrStack.push(nextip);
+		cout << "Call target: 0x" << hex << target << " RTN: " << RTN_FindNameByAddress(target) <<  " saved next ip: 0x" << hex << nextip << endl;
+	}
+    //*rsp = EmuPushValue(*rsp, nextip); 
+    ADDRINT rspVal = *rsp; 
     rspVal = rspVal - sizeof(ADDRINT);
     ADDRINT *psp = (ADDRINT *)rspVal;
     *psp = nextip;
     *rsp = rspVal;
-
-
-    return tgtip;
+    return target;
 }
 
-ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
-{
+ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize) {
     ADDRINT retval;
 
     ADDRINT rspVal = *rsp;
@@ -163,21 +170,29 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
     *rsp = rspVal + sizeof(ADDRINT);
     
     *rsp += framesize;
-
-	// Check the return address to make sure it is the one we saved
-	if (addrStack.empty()) {
-		RecordAddrSource(ip, "TOO MANY RETURNS");
-		stats.incInvalidReturnCount();
-		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
-	} else {
-		ADDRINT originval = addrStack.top();
-		addrStack.pop();
-		if (originval != retval) {
-			char errstr[128];
-			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retval);
-			RecordAddrSource(ip, (string)errstr);
+	
+	if (radEnabled) {
+		cout << "Ret  target: 0x" << hex << retval << " RTN: " << RTN_FindNameByAddress(retval) << endl;
+		// Check the return address to make sure it is the one we saved
+		if (addrStack.empty()) {
+			RecordAddrSource(ip, "TOO MANY RETURNS");
 			stats.incInvalidReturnCount();
-			fprintf(trace, "ERROR: %s\n", errstr);
+			fprintf(trace, "ERROR: TOO MANY RETURNS\n");
+		} else {
+			ADDRINT originval = (ADDRINT)addrStack.top();
+			addrStack.pop();
+			if (originval != retval) {
+				char errstr[128];
+				snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retval);
+				RecordAddrSource(ip, (string)errstr);
+				stats.incInvalidReturnCount();
+				fprintf(trace, "ERROR: %s\n", errstr);
+				//retval = originval;
+			}
+
+			if (mainReturnAddress == retval) {
+				radEnabled = false;
+			}
 		}
 	}
     return retval;
@@ -186,7 +201,7 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 /**
  * Is called for every instruction and instruments reads and writes
  */
-void Instruction(INS ins, void *v) {
+void Instruction(INS ins, void *v) {		
 	// RETURN ADDRESS DEFENDER
 	if (!forceNoRAD) {
 		if (INS_IsCall(ins)) {
@@ -285,14 +300,18 @@ void Fini(INT32 code, void *v) {
     fclose(trace);
 }
 
-/**
- * This is the function that replaces the glibc malloc call.
- */
-void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
+void AdjustAddrStack(void) {
 	// Pop the call for this function
 	if (!addrStack.empty()) {
 		addrStack.pop();
 	}
+}
+
+/**
+ * This is the function that replaces the glibc malloc call.
+ */
+void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
+	AdjustAddrStack();
     // Call the relocated entry point of the original (replaced) routine.
     void* v = orgFuncptr(arg0 + (2 * DEFAULT_FENCE_SIZE));
     stats.incMallocCount();
@@ -306,10 +325,7 @@ void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
  * This is the function that replaces the glibc calloc call.
  */
 void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnIp) {
-	// Pop the call for this function
-	if (!addrStack.empty()) {
-		addrStack.pop();
-	}
+	AdjustAddrStack();
     // Calculate the size in bytes
     size_t bytes = (arg0 * arg1);
     size_t totalSize = bytes + (2 * DEFAULT_FENCE_SIZE);
@@ -327,10 +343,7 @@ void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnI
  * This is the function that replaces the glibc realloc call.
  */
 void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnIp) {
-	// Pop the call for this function
-	if (!addrStack.empty()) {
-		addrStack.pop();
-	}
+	AdjustAddrStack();
 	// First, find MemoryAlloc of arg0
 	if(arg0 != NULL) {
         // Check the MemList
@@ -387,10 +400,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
  * This is the function that replaces the glibc free call.
  */
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
-	// Pop the call for this function
-	if (!addrStack.empty()) {
-		addrStack.pop();
-	}
+	AdjustAddrStack();
     if(ptr != NULL) {
         // Check the MemList
         int index  = ml.containsAddress(ptr);
@@ -442,6 +452,11 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
  * because only one thread knows about the image at this time.
  */
 void ImageLoad(IMG img, void *v) {
+	// Save the address of main
+	RTN rtn = RTN_FindByName(img, "main");
+	if(RTN_Valid(rtn)) {
+		mainAddress = RTN_Address(rtn);
+    }
     if(!hasEnding(IMG_Name(img), "libc.so.6")) {
         return;
     }
@@ -450,6 +465,7 @@ void ImageLoad(IMG img, void *v) {
     HookFree(img);
   	HookCalloc(img);
     HookRealloc(img);
+
 }
 
 /**
