@@ -17,7 +17,8 @@
 GTEST_DIR = gtest
 
 # Where to find user code.
-USER_DIR = src
+PRG_SRC_DIR = ../src
+TEST_SRC_DIR = src
 
 # Flags passed to the preprocessor.
 # Set Google Test's header directory as a system directory, such that
@@ -78,24 +79,24 @@ gtest_main.a : gtest-all.o gtest_main.o
 # gtest_main.a, depending on whether it defines its own main()
 # function.
 
-memoryalloc.o : $(USER_DIR)/memoryalloc.cpp $(USER_DIR)/memoryalloc.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memoryalloc.cpp
+memoryalloc.o : $(PRG_SRC_DIR)/memoryalloc.cpp $(PRG_SRC_DIR)/memoryalloc.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(PRG_SRC_DIR) -c $(PRG_SRC_DIR)/memoryalloc.cpp
 
-memoryalloc_unittest.o : $(USER_DIR)/memoryalloc_unittest.cpp \
-                     $(USER_DIR)/memoryalloc.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memoryalloc_unittest.cpp
+memoryalloc_unittest.o : $(TEST_SRC_DIR)/memoryalloc_unittest.cpp \
+                     $(PRG_SRC_DIR)/memoryalloc.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(PRG_SRC_DIR) -c $(TEST_SRC_DIR)/memoryalloc_unittest.cpp
 
 memoryalloc_unittest : memoryalloc.o memoryalloc_unittest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(PRG_SRC_DIR) -lpthread $^ -o $@
 
 
 
-memlist.o : $(USER_DIR)/memlist.cpp $(USER_DIR)/memlist.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memlist.cpp
+memlist.o : $(PRG_SRC_DIR)/memlist.cpp $(PRG_SRC_DIR)/memlist.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(PRG_SRC_DIR) -c $(PRG_SRC_DIR)/memlist.cpp
 
-memlist_unittest.o : $(USER_DIR)/memlist_unittest.cpp \
-                     $(USER_DIR)/memlist.h $(GTEST_HEADERS)
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $(USER_DIR)/memlist_unittest.cpp
+memlist_unittest.o : $(TEST_SRC_DIR)/memlist_unittest.cpp \
+                     $(PRG_SRC_DIR)/memlist.h $(GTEST_HEADERS)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(PRG_SRC_DIR) -c $(TEST_SRC_DIR)/memlist_unittest.cpp
 
 memlist_unittest : memlist.o memoryalloc.o memlist_unittest.o gtest_main.a
-	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -lpthread $^ -o $@
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) -I $(PRG_SRC_DIR) -lpthread $^ -o $@
