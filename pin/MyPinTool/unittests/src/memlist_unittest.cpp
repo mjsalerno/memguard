@@ -7,7 +7,9 @@
 TEST(MemList, All) {
 	MemList mlist;
 	int size1 = 1337;
+	int size2 = 777;
 	char *s1 = (char*) malloc(size1);
+	char *s2 = (char*) malloc(size2);
 	// Check the initial size;
 	ASSERT_TRUE(mlist.size() == 0);
 	// Create a new node
@@ -23,6 +25,11 @@ TEST(MemList, All) {
 	MemoryAlloc ma1(s1, size1);
 	mlist.add(ma1);
 	ASSERT_TRUE(mlist.size() == 1);
+	// Use add(void*, unsigned int, unsigned int)
+	mlist.add(s2, size2, DEFAULT_FENCE_SIZE);
+	ASSERT_TRUE(mlist.size() == 2);
+	success = mlist.remove(1);
+	ASSERT_TRUE(success);
 	// Check the containsAddress function
 	int index = mlist.containsAddress(ma1.getAddress());
 	ASSERT_TRUE(index >= 0);
@@ -61,4 +68,5 @@ TEST(MemList, All) {
 	ASSERT_TRUE(mlist.isEmpty());
 	// Free allocated memory
 	free(s1);
+	free(s2);
 }
