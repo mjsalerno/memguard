@@ -160,8 +160,8 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
     ADDRINT retval = 1;
 
     ADDRINT rspVal = *rsp;
-    //ADDRINT *psp = (ADDRINT *)rspVal;
-    //retval = *psp;
+    ADDRINT *psp = (ADDRINT *)rspVal;
+    retval = *psp;
     *rsp = rspVal + sizeof(ADDRINT);
     
     *rsp += framesize;
@@ -173,7 +173,7 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
 	} else {
 		ADDRINT originval = addrStack.top();
-		ADDRINT *ptrtoRA = addrOfReturnStack.top();
+		//ADDRINT *ptrtoRA = addrOfReturnStack.top();
 		// if (ptrtoRA != psp)
 			// cout << "NOT EQUALS" << endl;
 		// else
@@ -181,7 +181,7 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 		addrStack.pop();
 		addrOfReturnStack.pop();
 		
-		retval = *ptrtoRA;
+		//retval = *ptrtoRA;
 		if (originval != retval) {
 			char errstr[128];
 			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retval);
@@ -190,7 +190,7 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 			fprintf(trace, "ERROR: %s\n", errstr);
 		}
 	}
-	cout << "*rsp = " << hex << *rsp << "retip = " << hex << retval << endl;
+	//cout << "*rsp = " << hex << *rsp << " retip = " << hex << retval << endl;
     return retval;
 }
 
