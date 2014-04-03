@@ -1,0 +1,49 @@
+# Object files
+*.o
+*.ko
+*.obj
+*.elf
+
+# Libraries
+*.lib
+*.a
+
+# Shared objects (inc. Windows DLLs)
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# Executables
+*.exe
+*.out
+*.app
+*.hex
+
+# Custom Binaries
+libhook.so
+sample
+sample2
+hw
+utest
+
+pintool
+test
+stacksmash
+control
+gtest
+*.log
+*.gcda
+*.gcno
+*.xml
+*.html
+*unittest
+
+#NetBeans stuff
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+nbactions.xml
+nb-configuration.xml
