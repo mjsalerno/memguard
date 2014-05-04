@@ -36,7 +36,7 @@ example
 $ ../../../pin -t obj-intel64/malloctrace.so -- ~/Desktop/test
 ```
 ---
-#Using MyPinTool
+#Using MemGuard
 
 - extract the tarball you downloaded from [here](http://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool#GettingStarted)
 
@@ -50,16 +50,16 @@ $ tar -xvzf pin-2.13-62141-gcc.4.4.7-linux.tar.gz
 $ mv pin-2.13-62141-gcc.4.4.7-linux pin
 ```
 
-- move it to the root of the MyPinTool folder
+- move it to the root of the MemGuard folder
 
 ```bash
-$ mv pin cse409/pin/MyPinTool/
+$ mv pin memguard/pin/MemGuard/
 ```
 
-- move into the MyPinToolFolder
+- cd into the MemGuard
 
 ```bash
-$ cd cse409/pin/MyPinTool/
+$ cd memguard/pin/MemGuard/
 ```
 
 - Make and test the tool.
@@ -75,13 +75,18 @@ Or run it manually
 - make
 
 ```bash
-$ make PIN_ROOT=pin
+$ make PIN_ROOT=../pin
 ```
 
+- Now run the MemGuard tool on a sample binary
+
+```bash
+$ ../pin/pin.sh -t obj-intel64/memguard.so -- ./control
+```
 - clean
 
 ```bash
-$ make PIN_ROOT=pin clean
+$ make PIN_ROOT=../pin clean
 ```
 
 or

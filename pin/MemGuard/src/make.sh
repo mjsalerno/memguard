@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
+PIN_ROOT="../pin"
+
 if test "$1" = "clean"  ; then
-	make PIN_ROOT=pintool clean
+	make PIN_ROOT="$PIN_ROOT" clean
 	rm -f test sample stacksmash control
 elif test -z "$1" ; then
 	# Just ignore the flag and do the normal build 
-	make PIN_ROOT=pintool
+	make PIN_ROOT="$PIN_ROOT"
 	# Check to see if pin was successful
 	if [[ $? -ne 0 ]]; then
 		echo "pintool make failed."
@@ -37,20 +39,20 @@ elif test -z "$1" ; then
 	fi
 	# Run Pin
 	echo -e "\n### Running contorl program test on ./control ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./control
+	"$PIN_ROOT"/pin.sh -t "$OBJDIR"/memguard.so -- ./control
 	echo -e "\n### Appending control.log ###\n" > control.log
 	cat stats.log >> control.log
 
 	echo -e "\n### Running stack smashing detection test on ./stacksmash ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./stacksmash
+	"$PIN_ROOT"/pin.sh -t "$OBJDIR"/memguard.so -- ./stacksmash
 	echo -e "\n### Appending stacksmash.log ###\n" > stacksmash.log
 	cat stats.log >> stacksmash.log
 	
 	echo -e "\n### Running memory check detection test on ./test ###\n"
-	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- ./test
+	"$PIN_ROOT"/pin.sh -t "$OBJDIR"/memguard.so -- ./test
 
 else
-	make PIN_ROOT=pintool
+	make PIN_ROOT="$PIN_ROOT"
 	# Check to see if pin was successful
 	if [[ $? -ne 0 ]]; then
 		echo "pintool make failed."
@@ -62,5 +64,5 @@ else
 	else
 		OBJDIR="obj-ia32"
 	fi 
-	./pintool/pin.sh -t "$OBJDIR"/memguard.so -- $1	
+	"$PIN_ROOT"/pin.sh -t "$OBJDIR"/memguard.so -- $1
 fi
