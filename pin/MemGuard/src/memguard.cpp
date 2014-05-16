@@ -30,7 +30,7 @@ void RecordHeapMemRead(ADDRINT ip, void* addr) {
                 stats.incReadFenceOverflow();
                 fprintf(trace,"##########BAD READ - OVERFLOW: %p \n", addr);
                 RecordAddrSource(ip, "BAD READ - OVERFLOW");
-                break;    
+                break;
         }
     }
 }
@@ -54,14 +54,14 @@ void RecordHeapMemWrite(ADDRINT ip, void* addr) {
                 stats.incWriteFenceOverflow();
                 fprintf(trace,"##########BAD WRITE - OVERFLOW: %p \n", addr);
                 RecordAddrSource(ip, "BAD WRITE - OVERFLOW");
-                break;    
+                break;
         }
     }
 }
 
 /**
  * Gets the sourcefile, source line, and function name and logs a message.
- * see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html 
+ * see http://software.intel.com/sites/landingpage/pintool/docs/58423/Pin/html/group__DEBUG__API.html
  */
 void RecordAddrSource(ADDRINT address, string message) {
 	INT32 column = 0;   // column number within the file.
@@ -78,7 +78,7 @@ void RecordAddrSource(ADDRINT address, string message) {
         cout << BOLD << "Address: 0x" << hex << address << ": In function: ";
 		cout << "'" << rtnname << "': " << RESET;
 	} else {
-        // Print out a message 
+        // Print out a message
         cout << BOLD << "Address: 0x" << hex << address << ": In function: ";
         cout << "'" << rtnname << "': " << RESET;
     }
@@ -101,8 +101,8 @@ bool hasEnding (string const &fullString, string const &ending) {
  * Detects any reads made to stack memory.
  * TODO: Currently does nothing.
  */
-void RecordStackMemRead(void *ip, void *addr) {    
-    //printf("stack read: %p\n", addr);    
+void RecordStackMemRead(void *ip, void *addr) {
+    //printf("stack read: %p\n", addr);
 }
 
 /**
@@ -110,7 +110,7 @@ void RecordStackMemRead(void *ip, void *addr) {
  * TODO: Currently does nothing.
  */
 void RecordStackMemWrite(void *ip, void* addr) {
-    //printf("stack write: %p\n", addr); 
+    //printf("stack write: %p\n", addr);
 }
 
 
@@ -163,13 +163,13 @@ void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 	}
 }
 ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
-{	
+{
 	//Save the address where the matching ret instruction should go
 	addrStack.push(nextip);
     //*rsp = EmuPushValue(*rsp, nextip);
-    
+
     ADDRINT rspVal = *rsp;
-    
+
     rspVal = rspVal - sizeof(ADDRINT);
     ADDRINT *psp = (ADDRINT *)rspVal;
 	addrOfReturnStack.push(psp);
@@ -188,7 +188,7 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
     ADDRINT *psp = (ADDRINT *)rspVal;
     retval = *psp;
     *rsp = rspVal + sizeof(ADDRINT);
-    
+
     *rsp += framesize;
 
 	// Check the return address to make sure it is the one we saved
@@ -205,7 +205,7 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
 			// cout << "EQUALS" << endl;
 		addrStack.pop();
 		addrOfReturnStack.pop();
-		
+
 		//retval = *ptrtoRA;
 		if (originval != retval) {
 			char errstr[256];
@@ -278,7 +278,7 @@ void Instruction(INS ins, void *v) {
     // Instruments memory accesses using a predicated call, i.e.
     // the instrumentation is called iff the instruction will actually be executed.
     //
-    // On the IA-32 and Intel(R) 64 architectures conditional moves and REP 
+    // On the IA-32 and Intel(R) 64 architectures conditional moves and REP
     // prefixed instructions appear as predicated instructions in Pin.
     UINT32 memOperands = INS_MemoryOperandCount(ins);
 
@@ -298,7 +298,7 @@ void Instruction(INS ins, void *v) {
                 IARG_MEMORYOP_EA, memOp,
                 IARG_END);
         }
-        // Note that in some architectures a single memory operand can be 
+        // Note that in some architectures a single memory operand can be
         // both read and written (for instance incl (%eax) on IA-32)
         // In that case we instrument it once for read and once for write.
         //if (INS_MemoryOperandIsWritten(ins, memOp)) {
@@ -397,7 +397,7 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
         int index  = ml.containsAddress(arg0);
         if(index >= 0) {
             MemoryAlloc alloc = ml.get(index);
-			// Call the original realloc 
+			// Call the original realloc
 			void *newptr = orgFuncptr(alloc.getUnderflowFence(), arg1 + (2 * DEFAULT_FENCE_SIZE));
 			if (!newptr) {
 				// original realloc failed, so arg0 is untouched
@@ -413,9 +413,9 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
 			stats.incAllocCount();
             stats.incReallocCount();
     		fprintf(trace, "REALLOCED: %p, TOTAL SIZE: %zu\n", newptr, arg1 +(2 * DEFAULT_FENCE_SIZE));
-    		return ma.getAddress();           
+    		return ma.getAddress();
         } else if(index == ERR_NOT_FOUND) {
-            // This currently gets hit since a blacklist is being used 
+            // This currently gets hit since a blacklist is being used
             fprintf(trace, "Address = %p not found. Bad address in realloc.\n", arg0);
         } else if(index == ERR_MID_CHUNK) {
             fprintf(trace, "Mid-chunk memory in realloc @ %p\n", arg0);
@@ -494,7 +494,7 @@ void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
         RecordAddrSource(returnIp - 4, "INVALID FREE - NULL FREE");
         stats.incInvalidFreeCount();
         stats.incFreeNullCount();
-    } 
+    }
 }
 
 /**
@@ -524,10 +524,10 @@ void HookFree(IMG img) {
         PROTO proto = PROTO_Allocate(PIN_PARG(void), CALLINGSTD_DEFAULT, "free", PIN_PARG(void*), PIN_PARG_END());
         // Replace free
         RTN_ReplaceSignature(rtn, AFUNPTR(NewFree),
-            IARG_PROTOTYPE, 
+            IARG_PROTOTYPE,
             proto,
             IARG_ORIG_FUNCPTR,
-            IARG_FUNCARG_ENTRYPOINT_VALUE, 0, 
+            IARG_FUNCARG_ENTRYPOINT_VALUE, 0,
             IARG_RETURN_IP,
             IARG_END);
         // Free the function prototype
@@ -541,9 +541,9 @@ void HookFree(IMG img) {
 void HookMalloc(IMG img) {
     // See if malloc() is present in the image.  If so, replace it.
     RTN rtnMalloc = RTN_FindByName(img, "malloc");
-    
+
     if(RTN_Valid(rtnMalloc)) {
-        fprintf(trace, "Replacing malloc in %s\n", IMG_Name(img).c_str());   
+        fprintf(trace, "Replacing malloc in %s\n", IMG_Name(img).c_str());
         PROTO proto_malloc = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "malloc", PIN_PARG(int), PIN_PARG_END());
         RTN_ReplaceSignature(rtnMalloc, AFUNPTR(NewMalloc),
@@ -564,7 +564,7 @@ void HookCalloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "calloc");
     if(RTN_Valid(rtn)) {
-        fprintf(trace, "Replacing calloc in %s\n", IMG_Name(img).c_str());   
+        fprintf(trace, "Replacing calloc in %s\n", IMG_Name(img).c_str());
         PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "calloc", PIN_PARG(size_t), PIN_PARG(size_t), PIN_PARG_END());
         RTN_ReplaceSignature(rtn, AFUNPTR(NewCalloc),
@@ -586,7 +586,7 @@ void HookRealloc(IMG img) {
     // See if calloc() is present in the image.  If so, replace it.
     RTN rtn = RTN_FindByName(img, "realloc");
     if(RTN_Valid(rtn)) {
-        fprintf(trace, "Replacing realloc in %s\n", IMG_Name(img).c_str());   
+        fprintf(trace, "Replacing realloc in %s\n", IMG_Name(img).c_str());
         PROTO proto = PROTO_Allocate(PIN_PARG(void *), CALLINGSTD_DEFAULT,
             "realloc", PIN_PARG(void*), PIN_PARG(size_t), PIN_PARG_END());
         RTN_ReplaceSignature(rtn, AFUNPTR(NewRealloc),
@@ -614,7 +614,7 @@ INT32 Usage() {
     return -1;
 }
 
-/** 
+/**
  * Sanity check that the tool isn't being run in threaded code.
  */
 static VOID CheckThreadCount(THREADID threadIndex, CONTEXT *, INT32, VOID *)
@@ -623,16 +623,16 @@ static VOID CheckThreadCount(THREADID threadIndex, CONTEXT *, INT32, VOID *)
 }
 
 /**
- * Main Function. 
+ * Main Function.
  * Initializes pin, and starts the instrumented program.
  */
 int main(INT32 argc, CHAR *argv[]) {
     // Initialize symbol processing
     PIN_InitSymbols();
     // Initialize pin
-    if (PIN_Init(argc, argv)) 
+    if (PIN_Init(argc, argv))
         return Usage();
-	// Register used for 	   
+	// Register used for
 	scratchReg = PIN_ClaimToolRegister();
     if (!REG_valid(scratchReg)) {
         fprintf (stderr, "Cannot allocate a scratch register.\n");
