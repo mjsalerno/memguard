@@ -113,6 +113,27 @@ void RecordStackMemWrite(void *ip, void* addr) {
     //printf("stack write: %p\n", addr); 
 }
 
+
+/**
+ * Called directly before the stack pointer is written
+ *
+ * Use the fast linkage for calls
+ */
+ADDRINT PIN_FAST_ANALYSIS_CALL BeforeStackPtrWrite(ADDRINT rspVal) {
+    printf("Before stack pointer modification: %p\n", (void *)rspVal);
+    // Just return the stack pointer
+    return rspVal;
+}
+/**
+ * Called directly after the stack pointer is written
+ *
+ * Use the fast linkage for calls
+ */
+void PIN_FAST_ANALYSIS_CALL AfterStackPtrWrite(ADDRINT rspValNew, ADDRINT rspValOld) {
+    printf("After stack pointer modification: %p\n", (void *)rspValNew);
+    printf("stack pointer difference: %d\n", (int)(rspValNew - rspValOld));
+}
+
 /**
  * Saves the call instruction address.
  */
@@ -205,6 +226,24 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
  * Is called for every instruction and instruments reads and writes
  */
 void Instruction(INS ins, void *v) {
+    // Check if the instruction writes to the stack pointer
+    // Calculate the change in the stack pointer and update the
+    if (INS_RegWContain(ins, REG_STACK_PTR)) {
+        INS_InsertCall(ins, IPOINT_BEFORE,
+            (AFUNPTR)BeforeStackPtrWrite,
+            IARG_FAST_ANALYSIS_CALL,
+            IARG_REG_VALUE, REG_STACK_PTR,
+            IARG_RETURN_REGS, scratchReg, IARG_END);
+        IPOINT where = IPOINT_AFTER;
+        if (!INS_HasFallThrough(ins))
+            where = IPOINT_TAKEN_BRANCH;
+
+        INS_InsertCall(ins, where,
+            (AFUNPTR)AfterStackPtrWrite,
+            IARG_FAST_ANALYSIS_CALL,
+            IARG_REG_VALUE, REG_STACK_PTR,
+            IARG_REG_VALUE, scratchReg, IARG_END);
+    }
 	// RETURN ADDRESS DEFENDER
 	if (!forceNoRAD) {
 		if (INS_IsCall(ins)) {
