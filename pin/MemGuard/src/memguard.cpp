@@ -3,6 +3,7 @@
 using namespace std;
 
 /* pintool variables */
+static ADDRINT oldRspVal;
 FILE * trace;
 MemList ml;
 Stats stats;
@@ -119,19 +120,25 @@ void RecordStackMemWrite(void *ip, void* addr) {
  *
  * Use the fast linkage for calls
  */
-ADDRINT PIN_FAST_ANALYSIS_CALL BeforeStackPtrWrite(ADDRINT rspVal) {
-    printf("Before stack pointer modification: %p\n", (void *)rspVal);
+void PIN_FAST_ANALYSIS_CALL BeforeStackPtrWrite(ADDRINT rspVal) {
+    //printf("Before stack pointer modification: %p\n", (void *)rspVal);
     // Just return the stack pointer
-    return rspVal;
+    oldRspVal = rspVal;
 }
 /**
  * Called directly after the stack pointer is written
  *
  * Use the fast linkage for calls
  */
-void PIN_FAST_ANALYSIS_CALL AfterStackPtrWrite(ADDRINT rspValNew, ADDRINT rspValOld) {
-    printf("After stack pointer modification: %p\n", (void *)rspValNew);
-    printf("stack pointer difference: %d\n", (int)(rspValNew - rspValOld));
+void PIN_FAST_ANALYSIS_CALL AfterStackPtrWrite(ADDRINT rspVal) {
+    if(rspVal < oldRspVal){
+        printf("Added %d bytes to the stack\n", (int)(oldRspVal - rspVal));
+    } else if(rspVal > oldRspVal){
+        printf("Removed %d bytes from the stack\n", (int)(rspVal - oldRspVal));
+    } else{
+        // When writes to the stack do not change the stack pointer
+        printf("Stack unchanged\n");
+    }
 }
 
 /**
@@ -233,7 +240,7 @@ void Instruction(INS ins, void *v) {
             (AFUNPTR)BeforeStackPtrWrite,
             IARG_FAST_ANALYSIS_CALL,
             IARG_REG_VALUE, REG_STACK_PTR,
-            IARG_RETURN_REGS, scratchReg, IARG_END);
+            IARG_END);
         IPOINT where = IPOINT_AFTER;
         if (!INS_HasFallThrough(ins))
             where = IPOINT_TAKEN_BRANCH;
@@ -242,7 +249,7 @@ void Instruction(INS ins, void *v) {
             (AFUNPTR)AfterStackPtrWrite,
             IARG_FAST_ANALYSIS_CALL,
             IARG_REG_VALUE, REG_STACK_PTR,
-            IARG_REG_VALUE, scratchReg, IARG_END);
+            IARG_END);
     }
 	// RETURN ADDRESS DEFENDER
 	if (!forceNoRAD) {
