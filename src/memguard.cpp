@@ -132,12 +132,12 @@ void PIN_FAST_ANALYSIS_CALL BeforeStackPtrWrite(ADDRINT rspVal) {
  */
 void PIN_FAST_ANALYSIS_CALL AfterStackPtrWrite(ADDRINT rspVal) {
     if(rspVal < oldRspVal){
-        printf("Added %d bytes to the stack\n", (int)(oldRspVal - rspVal));
+        //printf("Added %d bytes to the stack\n", (int)(oldRspVal - rspVal));
     } else if(rspVal > oldRspVal){
-        printf("Removed %d bytes from the stack\n", (int)(rspVal - oldRspVal));
+        //printf("Removed %d bytes from the stack\n", (int)(rspVal - oldRspVal));
     } else{
         // When writes to the stack do not change the stack pointer
-        printf("Stack unchanged\n");
+        //printf("Stack unchanged\n");
     }
 }
 
