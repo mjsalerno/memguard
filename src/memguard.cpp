@@ -7,10 +7,44 @@ static ADDRINT oldRspVal;
 FILE * trace;
 MemList ml;
 Stats stats;
-stack<ADDRINT> addrStack;
+stack<ADDRINT> returnStack;
 stack<ADDRINT *> addrOfReturnStack;
 static REG scratchReg;
 static bool forceNoRAD = false;
+
+/* stuff to manage uninitialized stack reads */
+ADDRINT stackMemStart = 0;  // the start of the program's stack
+ADDRINT stackMemTop = 0;    // the top of the stack
+std::vector<char> stackMem;
+
+void add(size_t bytes){
+    while(bytes > 0){
+        stackMem.push_back((char)0);
+        bytes--;
+    }
+}
+
+void remove(size_t bytes){
+    while(bytes > 0){
+        stackMem.pop_back();
+        bytes--;
+    }
+}
+
+void markAsInit(ADDRINT address){
+    if(address > stackMemStart || address < stackMemTop)
+        return;
+    size_t index = stackMemStart - address;
+    stackMem[index] = (char) 1;
+}
+
+bool checkAddress(ADDRINT address){
+    if(address > stackMemStart || address < stackMemTop)
+        return false;
+    size_t index = stackMemStart - address;
+    return stackMem[index] == (char) 1;
+}
+
 
 /**
  * Checks and marks bad memory reads to any heap memory
@@ -103,7 +137,11 @@ bool hasEnding (string const &fullString, string const &ending) {
  * TODO: Currently does nothing.
  */
 void RecordStackMemRead(void *ip, void *addr) {
-    //printf("stack read: %p\n", addr);
+    printf("stack read: %p\n", addr);
+    if(!checkAddress((ADDRINT)addr))
+        printf("Uninitialized stack read at: %p\n", addr);
+    printf("stack bottom: %p\n", (void *)stackMemStart);
+    printf("stack top: %p\n", (void *)stackMemTop);
 }
 
 /**
@@ -111,7 +149,8 @@ void RecordStackMemRead(void *ip, void *addr) {
  * TODO: Currently does nothing.
  */
 void RecordStackMemWrite(void *ip, void* addr) {
-    //printf("stack write: %p\n", addr);
+    printf("stack write: %p\n", addr);
+    markAsInit((ADDRINT)addr);
 }
 
 
@@ -131,13 +170,21 @@ void PIN_FAST_ANALYSIS_CALL BeforeStackPtrWrite(ADDRINT rspVal) {
  * Use the fast linkage for calls
  */
 void PIN_FAST_ANALYSIS_CALL AfterStackPtrWrite(ADDRINT rspVal) {
+    // initialize the start address of the stack
+    if(stackMemStart == 0)
+        stackMemStart = oldRspVal;
+    //update the top pf the stack
+    stackMemTop = rspVal;
+
     if(rspVal < oldRspVal){
-        //printf("Added %d bytes to the stack\n", (int)(oldRspVal - rspVal));
+        printf("Added %d bytes to the stack\n", (int)(oldRspVal - rspVal));
+        add((size_t)(oldRspVal - rspVal));
     } else if(rspVal > oldRspVal){
-        //printf("Removed %d bytes from the stack\n", (int)(rspVal - oldRspVal));
+        printf("Removed %d bytes from the stack\n", (int)(rspVal - oldRspVal));
+        remove((size_t)(rspVal - oldRspVal));
     } else{
         // When writes to the stack do not change the stack pointer
-        //printf("Stack unchanged\n");
+        printf("Stack unchanged\n");
     }
 }
 
@@ -145,7 +192,7 @@ void PIN_FAST_ANALYSIS_CALL AfterStackPtrWrite(ADDRINT rspVal) {
  * Saves the call instruction address.
  */
 void RecordCallIns(ADDRINT nextip, ADDRINT target) {
-	addrStack.push(nextip);
+	returnStack.push(nextip);
 }
 
 /**
@@ -153,13 +200,13 @@ void RecordCallIns(ADDRINT nextip, ADDRINT target) {
  */
 void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 	ADDRINT originval;
-	if (addrStack.empty()) {
+	if (returnStack.empty()) {
 		RecordAddrSource(ip, "TOO MANY RETURNS");
 		stats.incInvalidReturnCount();
 		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
 	} else {
-		originval = addrStack.top();
-		addrStack.pop();
+		originval = returnStack.top();
+		returnStack.pop();
 		if (originval != retip) {
 			char errstr[128];
 			snprintf(errstr, 128, "RETURN ADDRESS CHANGED: expected target %p, actual return target %p", (void *)originval, (void *)retip);
@@ -172,7 +219,7 @@ void RecordReturnIns(ADDRINT ip, ADDRINT retip) {
 ADDRINT EmuCall(ADDRINT nextip, ADDRINT tgtip, ADDRINT *rsp)
 {
 	//Save the address where the matching ret instruction should go
-	addrStack.push(nextip);
+	returnStack.push(nextip);
     //*rsp = EmuPushValue(*rsp, nextip);
 
     ADDRINT rspVal = *rsp;
@@ -199,18 +246,18 @@ ADDRINT EmuRet(ADDRINT ip, ADDRINT *rsp, UINT32 framesize)
     *rsp += framesize;
 
 	// Check the return address to make sure it is the one we saved
-	if (addrStack.empty()) {
+	if (returnStack.empty()) {
 		RecordAddrSource(ip, "TOO MANY RETURNS");
 		stats.incInvalidReturnCount();
 		fprintf(trace, "ERROR: TOO MANY RETURNS\n");
 	} else {
-		ADDRINT originval = addrStack.top();
+		ADDRINT originval = returnStack.top();
 		//ADDRINT *ptrtoRA = addrOfReturnStack.top();
 		// if (ptrtoRA != psp)
 			// cout << "NOT EQUALS" << endl;
 		// else
 			// cout << "EQUALS" << endl;
-		addrStack.pop();
+		returnStack.pop();
 		addrOfReturnStack.pop();
 
 		//retval = *ptrtoRA;
@@ -337,14 +384,14 @@ void Fini(INT32 code, void *v) {
 	if (!forceNoRAD) {
 		//print the return address stack
 		fprintf(trace, "TOP Address Stack:\n");
-		while (!addrStack.empty()) {
-			ADDRINT leftover = addrStack.top();
+		while (!returnStack.empty()) {
+			ADDRINT leftover = returnStack.top();
 			fprintf(trace, "%p\n", (void *)leftover);
 			IMG img = IMG_FindByAddress(leftover);
 			if (IMG_Valid(img)) {
 				cout << IMG_Name(img) << endl;
 			}
-			addrStack.pop();
+			returnStack.pop();
 		}
 		fprintf(trace, "BOTTOM Address Stack:\n");
 	}
@@ -356,8 +403,8 @@ void Fini(INT32 code, void *v) {
  */
 void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
 	// Pop the call for this function
-	if (!addrStack.empty()) {
-		addrStack.pop();
+	if (!returnStack.empty()) {
+		returnStack.pop();
 		addrOfReturnStack.pop();
 	}
     // Call the relocated entry point of the original (replaced) routine.
@@ -374,8 +421,8 @@ void* NewMalloc(FP_MALLOC orgFuncptr, size_t arg0, ADDRINT returnIp) {
  */
 void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnIp) {
 	// Pop the call for this function
-	if (!addrStack.empty()) {
-		addrStack.pop();
+	if (!returnStack.empty()) {
+		returnStack.pop();
 	}
     // Calculate the size in bytes
     size_t bytes = (arg0 * arg1);
@@ -395,8 +442,8 @@ void* NewCalloc(FP_CALLOC libc_calloc, size_t arg0, size_t arg1, ADDRINT returnI
  */
 void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnIp) {
 	// Pop the call for this function
-	if (!addrStack.empty()) {
-		addrStack.pop();
+	if (!returnStack.empty()) {
+		returnStack.pop();
 	}
 	// First, find MemoryAlloc of arg0
 	if(arg0 != NULL) {
@@ -456,8 +503,8 @@ void* NewRealloc(FP_REALLOC orgFuncptr, void* arg0, size_t arg1, ADDRINT returnI
  */
 void NewFree(FP_FREE orgFuncptr, void* ptr, ADDRINT returnIp) {
 	// Pop the call for this function
-	if (!addrStack.empty()) {
-		addrStack.pop();
+	if (!returnStack.empty()) {
+		returnStack.pop();
 	}
     if(ptr != NULL) {
         // Check the MemList
