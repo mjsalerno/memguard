@@ -33,6 +33,7 @@ test
 stacksmash
 control
 gtest
+src/stack
 *.log
 *.gcda
 *.gcno

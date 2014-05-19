@@ -1,44 +1,12 @@
 #Getting Pin
 
 
-- Download pin from [here](http://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool#GettingStarted)
-
-#Building Pin Tools
+- Download Pin from [here](http://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool#GettingStarted)
 
 
-- Navagate to cd source/tools/ManualExamples and make all
-
-```bash
-$ cd source/tools/ManualExamples
-```
-
-- Build the tools 
-
-   -  make all of the tools
-```bash       
-$ make all
-```
-
-- or make just one tool
-
-```bash
-$ make malloctrace.test
-```
-
-#Using Pin
-
-```bash
-$ ../../../pin -t  obj-intel64/<pin-tool>.so  -- <prgm-to-test>
-```
-example
-
-```bash
-$ ../../../pin -t obj-intel64/malloctrace.so -- ~/Desktop/test
-```
----
 #Using MemGuard
 
-- extract the tarball you downloaded from [here](http://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool#GettingStarted)
+- extract the Pin tarball you downloaded from [here](http://software.intel.com/en-us/articles/pin-a-dynamic-binary-instrumentation-tool#GettingStarted)
 
 ```bash
 $ tar -xvzf pin-2.13-62141-gcc.4.4.7-linux.tar.gz
@@ -53,13 +21,13 @@ $ mv pin-2.13-62141-gcc.4.4.7-linux pin
 - move it to the root of the MemGuard folder
 
 ```bash
-$ mv pin memguard/pin/MemGuard/
+$ mv pin memguard/pin
 ```
 
-- cd into the MemGuard
+- cd into src/
 
 ```bash
-$ cd memguard/pin/MemGuard/
+$ cd memguard/src/
 ```
 
 - Make and test the tool.
@@ -78,7 +46,7 @@ Or run it manually
 $ make PIN_ROOT=../pin
 ```
 
-- Now run the MemGuard tool on a sample binary
+- Now run the MemGuard tool on a sample binary from the src directory
 
 ```bash
 $ ../pin/pin.sh -t obj-intel64/memguard.so -- ./control
@@ -101,7 +69,7 @@ An error may occur when you run pin:
 Killed
 paul@paul-UX32VD:~/Git/cse409/pin/MyPinTool$ ./pin/pin -t obj-intel64/mallocmem.so -- test
 Killed
-E:Attach to pid 7725 failed. 
+E:Attach to pid 7725 failed.
 E:  The Operating System configuration prevents Pin from using the default (parent) injection mode.
 E:  To resolve this, either execute the following (as root):
 E:  $ echo 0 > /proc/sys/kernel/yama/ptrace_scope
@@ -117,6 +85,33 @@ If this happens do:
 3. exit
 
 Run the command again
+
+#Building Pin Tools
+
+
+- Navagate to cd source/tools/ManualExamples and make all
+
+```bash
+$ cd pin/source/tools/ManualExamples
+$ make all
+```
+
+- or make just one tool
+
+```bash
+$ make malloctrace.test
+```
+
+#Using Pin
+
+```bash
+$ ./pin -t source/tools/ManualExamples/obj-intel64/<pin-tool>.so  -- <prgm-to-test>
+```
+example
+
+```bash
+$ ./pin -t source/tools/ManualExamples/obj-intel64/malloctrace.so -- ~/Desktop/test
+```
 
 # Sources
 1. [Detecting uninitialized memory read access bugs using pin](http://jbremer.org/detecting-uninitialized-memory-read-access-bugs-using-pin-a-la-valgrind/)
