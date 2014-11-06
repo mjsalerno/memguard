@@ -18,6 +18,7 @@ ADDRINT stackMemTop = 0;    // the top of the stack
 std::vector<char> stackMem;
 
 void add(size_t bytes){
+    printf("Adding %lu bytes\n", bytes);
     while(bytes > 0){
         stackMem.push_back((char)0);
         bytes--;
@@ -31,14 +32,23 @@ void remove(size_t bytes){
     }
 }
 
-void markAsInit(ADDRINT address){
-    if(address > stackMemStart || address < stackMemTop)
+void logWrite(ADDRINT address){
+    if(address > stackMemStart)
         return;
+    // if a write is below the stack
+    if(address < stackMemTop){
+        size_t offset = (size_t)(stackMemTop - address);
+        if(offset < 16384){
+            add(offset);
+            stackMemTop = address;
+        }
+    }
     size_t index = stackMemStart - address;
+    printf("Logging write at index %lu\n", index);
     stackMem[index] = (char) 1;
 }
 
-bool checkAddress(ADDRINT address){
+bool checkRead(ADDRINT address){
     if(address > stackMemStart || address < stackMemTop)
         return false;
     size_t index = stackMemStart - address;
@@ -138,7 +148,7 @@ bool hasEnding (string const &fullString, string const &ending) {
  */
 void RecordStackMemRead(void *ip, void *addr) {
     printf("stack read: %p\n", addr);
-    if(!checkAddress((ADDRINT)addr))
+    if(!checkRead((ADDRINT)addr))
         printf("Uninitialized stack read at: %p\n", addr);
     printf("stack bottom: %p\n", (void *)stackMemStart);
     printf("stack top: %p\n", (void *)stackMemTop);
@@ -148,9 +158,9 @@ void RecordStackMemRead(void *ip, void *addr) {
  * Detects any writes made to stack memory.
  * TODO: Currently does nothing.
  */
-void RecordStackMemWrite(void *ip, void* addr) {
-    printf("stack write: %p\n", addr);
-    markAsInit((ADDRINT)addr);
+void RecordStackMemWrite(void *ip, ADDRINT addr) {
+    printf("stack write: %p\n", (void *)addr);
+    logWrite(addr);
 }
 
 
@@ -171,10 +181,11 @@ void PIN_FAST_ANALYSIS_CALL BeforeStackPtrWrite(ADDRINT rspVal) {
  */
 void PIN_FAST_ANALYSIS_CALL AfterStackPtrWrite(ADDRINT rspVal) {
     // initialize the start address of the stack
-    if(stackMemStart == 0)
+    if(stackMemStart == 0){
         stackMemStart = oldRspVal;
-    //update the top pf the stack
-    stackMemTop = rspVal;
+        //update the top pf the stack
+        stackMemTop = rspVal;
+    }
 
     if(rspVal < oldRspVal){
         printf("Added %d bytes to the stack\n", (int)(oldRspVal - rspVal));

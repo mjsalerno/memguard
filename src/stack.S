@@ -5,7 +5,7 @@ _start:
         pushq %rcx                      # Add 8 bytes to the stack
         popq %rcx                       # Remove 8 bytes to the stack
         sub $8, %rsp                    # Add 8 bytes to the stack
-        add $8, %rsp                    # Add 8 bytes to the stack
+        add $8, %rsp                    # Remove 8 bytes from the stack
 
 
         # exit(0)
